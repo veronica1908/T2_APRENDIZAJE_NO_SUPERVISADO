@@ -1,0 +1,45 @@
+#Preparamos complementos, librerías y bases disponibles
+import warnings
+
+warnings.filterwarnings("ignore")
+
+!pip install pandas numpy sweetviz seaborn matplotlib scikit-learn
+
+#Instalación de complemento
+!pip install sweetviz
+
+#importar librerias
+import pandas as pd
+import numpy as np
+import sweetviz as sv
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.express as px
+from sklearn.linear_model import LinearRegression, Ridge, RidgeCV, Lasso
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import ShuffleSplit
+from sklearn import datasets
+import numpy as np
+import pandas as pd
+from sklearn import tree
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+
+
+%matplotlib inline
