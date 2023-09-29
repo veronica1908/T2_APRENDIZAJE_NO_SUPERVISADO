@@ -49,10 +49,10 @@ from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDis
 #BD= pd.read_csv('https://github.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/blob/67003e67ed6d313a5eeb858582da4f058931f16b/BASE_DATOS_D.csv')
 
 # Obtener los 10 primeros registros
-df.head(10)
+BD.head(10)
 
 # Identificación de valores ausentes
-df.isnull().sum()
+BD.isnull().sum()
 
 
 
