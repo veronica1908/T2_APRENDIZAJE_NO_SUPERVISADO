@@ -46,7 +46,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDis
 #Traemos la base de datos
 
 # Lectura de los datos
-#BD= pd.read_csv("https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/blob/b2bd0befa6e90e08499c6f1dcb71f8f9cafe0478/BASE_DATOS_D.csv")
+BD= pd.read_csv('https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/blob/6ec57416029609ad12a898df6294083af6b46a4d/BASE_DATOS_D.csv')
 
 
 
