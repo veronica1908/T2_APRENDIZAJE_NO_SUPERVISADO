@@ -453,3 +453,155 @@ BDD = BDD.dropna(subset=['País de residencia', 'Departamento de residencia', 'M
 
 #Verificamos datos nulos
 BDD.isnull().sum()
+
+#Agregamos la información a los datos vacíos de la columna "Area de residencia" que tiene 2 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Area de residencia'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna
+sorted(BDD['Area de residencia'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Area de residencia'] = BDD['Area de residencia'].replace({'"CENTRO POBLADO (Inspección,\r\ncorregimiento o caserío)"':'CENTRO POBLADO (INSPECCIÓN, CORREGIMIENTO O CASERÍO)'})
+
+#Verificamos ajustes
+sorted(BDD['Area de residencia'].unique())
+
+#Agregamos la información a los datos vacíos de la columna "Barrio de fallecido" que tiene 210 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Barrio de fallecido'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna
+sorted(BDD['Barrio de fallecido'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Barrio de fallecido'] = BDD['Barrio de fallecido'].replace({'ACUARELA':'ACUARELAS',
+                                                                 'ALTO BONITO':'ALTOBONITO',
+                                                                 'ALTOS DE GUADALAJARA':'ALTOS DEL GUADALAJARA',
+                                                                 'BALCONESL DEL NORTE':'BALCONES DEL NORTE',
+                                                                 'BELLAVISTA':'BELLA VISTA',
+                                                                 'DIVINNO NIÑO':'DIVINO NIÑO',
+                                                                 'DIVINO NINO':'DIVINO NIÑO',
+                                                                 'EL DIVINO NIÑO':'DIVINO NIÑO',
+                                                                 'ENTRE VALLES':'ENTREVALLES',
+                                                                 'FUENMAYOR': 'FUEN MAYOR',
+                                                                 'GONZALO ECHEVERRI':'GONZALO ECHEVERRY',
+                                                                 'JORGE ELIZER GAITAN':'JORGE ELIECER GAITAN',
+                                                                 'LA CONFORNIA':'LA CONCORDIA',
+                                                                 'LA CORCORDIA':'LA CONCORDIA',
+                                                                 'LA MARCED':'LA MERCED',
+                                                                 'LAS MERCED': 'LA MERCED',
+                                                                 'LA REVOLUCION':'LA REVOLUCIÓN',
+                                                                 'LA REVOLUSION':'LA REVOLUCIÓN',
+                                                                 'REVOLUCION':'LA REVOLUCIÓN',
+                                                                 'MARA LUISA DE LA ESPADA': 'MARIA LUISA  LA ESPADA',
+                                                                 'MARIA LUISA': 'MARIA LUISA DE LA ESPADA',
+                                                                 'MARIA LUISA  LA ESPADA':'MARIA LUISA DE LA ESPADA',
+                                                                 'MARIA LUISA LA EPSADA':'MARIA LUISA DE LA ESPADA',
+                                                                 'MARIA LUISA LA ESPADA':'MARIA LUISA DE LA ESPADA',
+                                                                 'MARIA LUISA  LA ESPADA':'MARIA LUISA DE LA ESPADA',
+                                                                 'NO RECUERDA':'NO IDENTIFICADO',
+                                                                 'NO SABE':'NO IDENTIFICADO',
+                                                                 'OTROS':'OTRO',
+                                                                 'OTROS BARRIOS':'OTRO',
+                                                                 'SD':'OTRO',
+                                                                 'RICAUTE':'RICAURTE',
+                                                                 'SAN JOSE DE LAS PALMAS':'SAN JOSÉ DE LAS PALMAS',
+                                                                 'SIN DATOS': 'SIN INFORMACIÓN',
+                                                                 'SIN INFORMACION':'SIN INFORMACIÓN',
+                                                                 'UNI NORTE': 'UNINORTE'})
+
+#Verificamos ajustes
+sorted(BDD['Barrio de fallecido'].unique())
+
+#Verificamos categorías de la columna "Vereda del fallecido" que no tiene datos nulos
+sorted(BDD['Vereda del fallecido'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Vereda del fallecido'] = BDD['Vereda del fallecido'].replace({'CHAMBINBAL':'CHAMBIMBAL',
+                                                                    'CHAMBINBAL SAN ANTONIO':'CHAMBIMBAL SAN ANTONIO',
+                                                                    'MEDIACANOA':'MEDIA CANOA',
+                                                                    'MIRAVLLE':'MIRAVALLE',
+                                                                    'NO DIENTIFICADA':'NO IDENTIFICADA',
+                                                                    'SIN INFORMACION':'SIN INFORMACIÓN',
+                                                                    'chambimbal la campiña':'CHAMBIMBAL LA CAMPIÑA',
+                                                                   'el manantial':'EL MANANTIAL',
+                                                                   'el vinculo':'EL VINCULO'})
+#Verificamos ajustes
+sorted(BDD['Vereda del fallecido'].unique())
+
+#Agregamos la información a los datos vacíos de la columna "Seguridad social" que tiene 27 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Seguridad social'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna
+sorted(BDD['Seguridad social'].unique())
+#No hay más ajustes para esta columna
+
+#Verificamos categorías de la columna "Entidad administradora de salud" que no tiene datos nulos
+sorted(BDD['Entidad administradora de salud'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Entidad administradora de salud'] = BDD['Entidad administradora de salud'].replace({'ASMET SALUD EPS SAS -CM':'ASMET SALUD EPS SAS',
+                                                                                         'ASMET SALUD ESS - ASOCIACION MUTUAL LA ESPERANZA':'ASMET SALUD EPS SAS',
+                                                                                         'ASOCIACIÓN MUTUAL LA ESPERANZA - ASMET SALUD':'ASMET SALUD EPS SAS',
+                                                                                         'ASOCIACIÓN MUTUAL LA ESPERANZA - ASMET SALUD -CM':'ASMET SALUD EPS SAS',
+                                                                                         'ASOCIACIÓN MUTUAL LA ESPERANZA ASMET  SALUD-CM':'ASMET SALUD EPS SAS',
+                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S. -CM':'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S.',
+                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO E.S.S. EMSSANAR E.S.S.-CM':'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S.',
+                                                                                         'CAFESALUD E.P.S.':'CAFESALUD E.P.S.  S.A.',
+                                                                                         'COMFENALCO VALLE':'COMFENALCO  VALLE  E.P.S.',
+                                                                                         'COMPENSAR   E.P.S.-CM':'COMPENSAR   E.P.S.',
+                                                                                         'COMPENSAR E.P.S.':'COMPENSAR   E.P.S.',
+                                                                                         'COMPENSAR E.P.S. -CM':'COMPENSAR   E.P.S.',
+                                                                                         'COOMEVA   E.P.S.  S.A.':'COOMEVA E.P.S. S.A.',
+                                                                                         'COOMEVA E.P.S. S.A. -CM':'COOMEVA E.P.S. S.A.',
+                                                                                         'COOMEVA MEDICINA PREPAGADA S.A.':'COOMEVA E.P.S. S.A.',
+                                                                                         'COOPERATIVA DE SALUD Y DESARROLLO INTEGRAL ZONA SUR ORIENTAL DE CARTAGENA LTDA. - COOSALUD E.S.S. -CM':'COOPERATIVA DE SALUD Y DESARROLLO INTEGRAL ZONA SUR ORIENTAL DE CARTAGENA LTDA. - COOSALUD E.S.S.',
+                                                                                         'E.P.S. SANITAS':'E.P.S.  SANITAS  S.A.',
+                                                                                         'EPS SANITAS - CM':'E.P.S.  SANITAS  S.A.',
+                                                                                         'EMSSANAR ESS - ASOCIACION MUTUAL EMPRESA SOLIDARIA DE SALUD':'EMSSANAR S.A.S.',
+                                                                                         'ENTIDAD COOPERATIVA SOLIDARIA DE SALUD DEL NORTE DE SOACHA - ECOOPSOS -CM':'ENTIDAD COOPERATIVA SOLIDARIA DE SALUD DEL NORTE DE SOACHA - ECOOPSOS',
+                                                                                         'EPS S.O.S. S.A. - EPS SERVICIO OCCIDENTAL DE SALUD  S.A.': 'EPS SERVICIO OCCIDENTAL DE SALUD  S.A. - EPS S.O.S. S.A.-CM',
+                                                                                         'EPS Y MEDICINA PREPAGADA SURAMERICANA S.A': 'EPS SURA',
+                                                                                         'EPS Y MEDICINA PREPAGADA SURAMERICANA S.A -CM': 'EPS SURA',
+                                                                                         'EPS Y MEDICINA PREPAGADA SURAMERICANA S.A-CM': 'EPS SURA',
+                                                                                         'EPS Y MEDICINA PREPAGADA SURAMERICANA S.A.': 'EPS SURA',
+                                                                                         'FAMISANAR E.P.S. LTDA - CAFAM - COLSUBSIDIO -CM':'FAMISANAR E.P.S. LTDA - CAFAM - COLSUBSIDIO',
+                                                                                         'MEDIMÁS EPS S.A.S. CONTRIBUTIVO':'MEDIMÁS EPS S.A.S.',
+                                                                                         'MEDIMÁS EPS S.A.S. SUBSIDIADO':'MEDIMÁS EPS S.A.S.',
+                                                                                         'MEDIMÁS EPS S.A.S. -CM':'MEDIMÁS EPS S.A.S.',
+                                                                                         'LA NUEVA EPS S.A.-CM':'NUEVA EPS S.A',
+                                                                                         'NUEVA EPS S.A.':'NUEVA EPS S.A',
+                                                                                         'NUEVA EPS S.A. -CM':'NUEVA EPS S.A',
+                                                                                         'NUEVA EPS SA':'NUEVA EPS S.A',
+                                                                                         'SALUD TOTAL E.P.S. -CM':'SALUD TOTAL S.A.',
+                                                                                         'SALUD TOTAL S.A. ENTIDAD PROMOTORA DE SALUD':'SALUD TOTAL S.A.',
+                                                                                         'SAVIA SALUD E.P.S. -CM': 'SAVIA SALUD E.P.S.',
+                                                                                         'SERVICIO OCCIDENTAL DE SALUD - S.O.S. S.A. -CM': 'SERVICIO OCCIDENTAL DE SALUD - S.O.S. S.A.'})
+#Verificamos ajustes
+sorted(BDD['Entidad administradora de salud'].unique())
+
+#Agregamos la información a los datos vacíos de la columna "Probable manera de muerte" que tiene 640 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Probable manera de muerte'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna
+sorted(BDD['Probable manera de muerte'].unique())
+#No hay más ajustes para esta columna
+
+#Como las variables "longitud", "latitud" y localización pueden aportarnos información espacial visual de los datos, se conservan y se reemplazan los datos nulos con cero (894 datos nulos cada uno)
+BDD['longitud'].fillna(0, inplace=True)
+BDD['latitud'].fillna(0, inplace=True)
+BDD['Geolocalización'].fillna(0, inplace=True)
+
+#Verificamos los datos nulos
+#Verificamos datos nulos
+BDD.isnull().sum()
+
+#No quedan datos nulos en las variables, y para garantizar que la información de las variables "año" y "mes" sean correctas, se reemplaza la información de estas columnas a partir de la variable "Fecha de Defunción"
+# Extraer el nombre del mes y agregarlo en la columna 'mes'
+BDD['mes'] = BDD['Fecha de Defunción'].dt.strftime('%B')
+# Extraer el año y crear una nueva columna 'año'
+BDD['año'] = BDD['Fecha de Defunción'].dt.year
+
+#Verificamos el contenido de las variables
+BDD[['año', 'mes']]
+
+#Hemos finalizado la limpieza y preprocesamiento de todas las variables en la base de datos.
