@@ -48,10 +48,408 @@ from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDis
 # Lectura de los datos
 BDD = pd.read_csv("https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/main/BASE_SIN_PROCESAR.csv", sep = ',')
 
-#Vemos los datos
+#Verificamos que la base haya cargado y pueda visualizarse
 BDD.head()
 
+#Verificamos las dimensiones de la base
+BDD.shape
+
+# Verificamos cuáles son las variables de la base, vemos información de las variables, como datos NO nulos y tipo de dato
+BDD.info()
+
+# Vemos la cantidad de datos nulos por variable
+BDD.isnull().sum()
+
+#Existen muchos datos nulos y como las dimensiones de la base son considerablemente grandes, se eliminarán las filas cuyos datos nulos pertenezcan a variables núméricas importantes y para las filas de texto, se agregará "Sin información"
+
+#Vamos a verificar cada columna para tomar decisiones en el ajuste de datos de cada una de ellas
+#Empezamos con la columna "N°", la cual tiene 1141 datos nulos-vacíos
+print(BDD['N°'])
+
+#La columna N° es un identificador de características o filas de la base y los valores están asignados como identificador consecutivo, vamos a llenar esta columna con números los consecutivos.
+BDD['N°'] = range(1, len(BDD) + 1)
+
+#Verificamos que no queden datos nulos-vacíos
+BDD['N°'].isnull().sum()
+
+#Como la columna "Departamento defunción" no tiene datos nulos, verificamos entonces sus categorías en orden alfabético para detectar posibles errores en el ingreso de datos 
+sorted(BDD['Departamento defunción'].unique())
+#No hay inconveniente con esta variable-columna
+
+#Como la columna "Municipio defunción" tampoco tiene datos nulos, verificamos también sus categorías
+sorted(BDD['Municipio defunción'].unique())
+#se observa que pueden combinarse las categorías "CALIMA' y 'CALIMA (DARIEN)'
 
 
+#Se combinan las categorías "CALIMA' y 'CALIMA (DARIEN)'
+BDD['Municipio defunción'] = BDD['Municipio defunción'].replace({'CALIMA (DARIEN)': 'CALIMA'})
 
+#Verificamos
+sorted(BDD['Municipio defunción'].unique())
 
+#Columna "Área defunción" tiene 3 datos nulos, los llenamos con el texto "SIN INFORMACIÓN" y verificamos también sus categorías
+#Agregamos información a celdas vacías
+BDD['Área defunción'].fillna('SIN INFORMACIÓN', inplace=True)
+#Verificamos categorías
+sorted(BDD['Área defunción'].unique())
+
+#Unificamos las categorías: "CENTRO POBLADO (Inspección,\r\ncorregimiento o caserío)" y 'CENTRO POBLADO (INSPECCIÓN, CORREGIMIENTO O CASERÍO)' como "CENTRO POBLADO"
+BDD['Área defunción'] = BDD['Área defunción'].replace({'"CENTRO POBLADO (Inspección,\r\ncorregimiento o caserío)"': 'CENTRO POBLADO', 'CENTRO POBLADO (INSPECCIÓN, CORREGIMIENTO O CASERÍO)':'CENTRO POBLADO'})
+#Verificamos ajustes
+sorted(BDD['Área defunción'].unique())
+
+#Columna "Sitio defunción" no tiene datos nulos, verificamos categorías
+sorted(BDD['Sitio defunción'].unique())
+#No hay ajustes para esta variable
+
+#Columna "Otro sitio de defunción" tiene 5254 nulos. Esta columna existe solo como complemento para la categoría "OTRO" de la variable "Sitio defunción",
+#Por lo tanto, se reemplazará los datos nulos con el texto "NA" (no aplica), para las filas del resto de las categorías diferentes a "OTRO" que aparecen como nulos
+
+#Agregamos información en celdas vacías
+BDD['Otro sitio de defunción'].fillna('NA', inplace=True)
+
+#Verificamos categorías
+sorted(BDD['Otro sitio de defunción'].unique())
+
+#Ponemos todas las categorías en mayúsculas, ya que solo "domicilio" está en minúscula.
+BDD['Otro sitio de defunción'] = BDD['Otro sitio de defunción'].str.upper()
+#Unificamos las categorías 'PRISIÓN REFORMATORIOS'y 'PRISIÓNREFORMATORIOS'
+BDD['Otro sitio de defunción'] = BDD['Otro sitio de defunción'].replace({'PRISIÓNREFORMATORIOS': 'PRISIÓN REFORMATORIOS'})
+
+#Verificamos nuevamente categorías
+sorted(BDD['Otro sitio de defunción'].unique())
+
+#Verificamos datos nulos
+BDD['Otro sitio de defunción'].isnull().sum()
+
+#Verificamos categorías de 'Nombre institución' de defunción que no tiene datos nulos
+sorted(BDD['Nombre institución de defunción'].unique())
+#Sin novedades en esta columna
+
+#Verificamos categorías de 'Tipo de defunción' de defunción que no tiene datos nulos
+sorted(BDD['Tipo de defunción'].unique())
+#Sin novedades en esta columna
+
+#La variable 'Fecha de Defunción' no tiene datos nulos, pero se ajusta el formato
+# Convertir a formato de fecha
+BDD['Fecha de Defunción'] = pd.to_datetime(BDD['Fecha de Defunción'])
+#Verificamos
+BDD.info('Fecha de Defunción')
+
+#Como la columna "Hora de defunción" tiene 1072 datos vacíos, pero la columna anterior de fecha, contiene también la hora y no tenía datos nulos, se elimina la columna de hora para no considerarla.
+BDD = BDD.drop('Hora de defunción', axis=1)
+
+#Verificamos categorías de la columna sexo que no tiene datos nulos.
+sorted(BDD['Sexo'].unique())
+#Sin novedades en esta columna
+
+#Agregamos la información a los datos vacíos de la columna "Estado civil" que tiene 51 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Estado civil'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna 'Estado civil'
+sorted(BDD['Estado civil'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Estado civil'] = BDD['Estado civil'].replace({'ESTABA CASADO(A)': 'CASADO(A)',
+                                                   'NO CASADO(A) Y DOS AÑOS O MAS CON SU PAREJA':'UNIÓN LIBRE',
+                                                   'NO CASADO(A) Y MENOS DE DOS AÑOS CON SU PAREJA':'UNIÓN LIBRE',
+                                                   'NO ESTABA CASADO(A) Y LLEVABA DOS AÑOS O MÁS VIVIENDO CON SU PAREJA':'UNIÓN LIBRE',
+                                                   'NO ESTABA CASADO(A) Y LLEVABA MENOS DE DOS AÑOS VIVIENDO CON SU PAREJA':'UNIÓN LIBRE',
+                                                   'ESTABA SEPARADO(A), DIVORCIADO(A)':'SEPARADO (A)',
+                                                   'SEPARADO(A), DIVORCIADO(A)':'SEPARADO (A)',
+                                                   'ESTABA SOLTERO(A)':'SOLTERO(A)',
+                                                   'ESTABA VIUDO(A)':'VIUDO(A)'})
+
+#Verificamos ajustes
+sorted(BDD['Estado civil'].unique())
+
+#Como la edad es una variable que podría tener gran significancia en esta base de datos, tener datos vacíos no sería útil y llenarlos con la media podría sesgar la información.
+#Considerando que el conjunto de datos es de buenas dimensiones, se decide eliminar las filas con valores nulos en esta variable.
+BDD = BDD.dropna(subset=['Edad'])
+
+#Verificamos datos nulos
+BDD['Edad'].isnull().sum()
+
+#Agregamos la información a los datos vacíos de la columna "Nivel educativo " que tiene 24 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Nivel educativo'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna 'Nivel educativo '
+sorted(BDD['Nivel educativo'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Nivel educativo'] = BDD['Nivel educativo'].replace({'BASICA PRIMARIA': 'BÁSICA PRIMARIA',
+                                                   'BASICA SECUNDARIA':'BÁSICA SECUNDARIA',
+                                                   'MAESTRIA':'MAESTRÍA',
+                                                   'MEDIA ACADEMICA O CLASICA':'MEDIA ACADÉMICA',
+                                                   'MEDIA ACADÉMICA O CLÁSICA':'MEDIA ACADÉMICA',
+                                                   'MEDIA TECNICA':'MEDIA TÉCNICA',
+                                                   'TECNICA PROFESIONAL':'TÉCNICA PROFESIONAL',
+                                                   'TECNOLOGICA':'TECNOLÓGICA',
+                                                   'NORMALISTA':'MEDIA TÉCNICA'})
+
+#Verificamos ajustes
+sorted(BDD['Nivel educativo'].unique())
+
+#Como la columna "Último curso fallecido" tiene 1141 datos vacíos, pero la columna anterior de "Nivel educativo", contiene información similar, se elimina esta columna de la base
+BDD = BDD.drop('Último curso fallecido', axis=1)
+
+#Agregamos la información a los datos vacíos de la columna "Ocupación" que tiene 205 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Ocupación'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna 'Ocupación'
+sorted(BDD['Ocupación'].unique())
+
+#Como son tantas categorías en esta variable, vamos a clasificar las categorías de "Ocupación" en una nueva columna de nombre "OCUPACION", tomando la parte general del oficio
+#Renombramos la columna general
+BDD.columns = BDD.columns.str.replace('Ocupación', 'Ocupación específica')
+
+#Creamos la nueva columna
+BDD['OCUPACION'] = BDD['Ocupación específica']
+
+#Clasificamos las categorías agrupándolas así:
+
+A= ['AGENTES COMERCIALES Y CORREDORES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'AGENTES DE COMPRAS, INTERMEDIARIOS Y CONSIGNATARIOS',
+ 'AGENTES DE LA ADMINISTRACIÓN PÚBLICA EN ADUANAS, IMPUESTOS Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'AGENTES DE LA POLICIA NACIONAL',
+ 'AGENTES Y POLICIAS DE TRANSITO']
+
+B= 'AGENTES'
+
+C= ['TÉCNICOS EN AGRONOMÍA, ZOOTECNIA Y SILVICULTURA',
+ 'TÉCNICOS EN DISEÑO Y DECORADORES',
+ 'TÉCNICOS TERAPEUTAS, QUIROPRÁCTICOS Y AFINES',
+ 'TÉCNICOS Y ASISTENTES EN FARMACIA',
+ 'TÉCNICOS Y ASISTENTES VETERINARIOS',
+ 'TÉCNICOS Y POSTSECUNDARIOS NO UNIVERSITARIOS EN CIENCIAS FÍSICAS, QUÍMICAS E INGENIERÍAS, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'TÉCNICOS, POSTSECUNDARIOS NO UNIVERSITARIOS EN INGENIERÍA CIVIL, ARQUITECTURA, AGRIMENSORES Y AFINES',
+ 'TÉCNICOS, POSTSECUNDARIOS NO UNIVERSITARIOS Y ASISTENTES DE SERVICIOS ADMINISTRATIVOS Y AFINES',
+ 'TÉCNICOS, POSTSECUNDARIOS NO UNIVERSITARIOS Y ASISTENTES EN OPERACIONES COMERCIALES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'T╔CNICOS E HIGIENISTAS DENTALES',
+ 'T╔CNICOS EN AGRONOM═A, ZOOTECNIA Y SILVICULTURA',
+ 'T╔CNICOS Y ASISTENTES EN FARMACIA']
+
+D= 'TÉCNICOS'
+
+E= ['OPERADORES DE EQUIPOS ÓPTICOS Y ELECTRÓNICOS, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'OPERADORES DE INSTALACIONES DE TRATAMIENTO DE AGUA Y AFINES',
+ 'OPERADORES DE MEZCLADORAS Y DE HORNOS DE VIDRIER═A Y AFINES',
+ 'OPERADORES DE MÁQUINAS PARA PROCESAR CARNE, PESCADO Y MARISCOS',
+ 'OPERADORES DE TELARES Y OTRAS MÁQUINAS TEJEDORAS',
+ 'OPERARIOS DE LA CONSERVACIÓN DE FRUTAS, LEGUMBRES, VERDURAS Y AFINES',
+ 'OPERARIOS DE LA FOTOGRAFÍA Y AFINES',
+ 'OPERARIOS DEL TRATAMIENTO DE LA MADERA',
+ 'OPERARIOS EN CEMENTO ARMADO, ENFOSCADORES Y AFINES',
+ 'OBREROS DE CARGA',
+ 'OBREROS DE LA CONSTRUCCIÓN DE EDIFICIOS',
+ 'OBREROS DE PESCA, CAZA Y TRAMPA',
+ 'OBREROS FORESTALES',
+ 'OBREROS Y PEONES AGROPECUARIOS DE LABRANZA Y DE INVERNADERO']
+
+F='OPERARIOS'
+
+G=['PROFESORES DE EDUCACIËN PRIMARIA',
+ 'PROFESORES DE EDUCACIËN SECUNDARIA',
+ 'PROFESORES DE EDUCACIÓN PRIMARIA',
+ 'PROFESORES DE EDUCACIÓN SECUNDARIA',
+ 'PROFESORES DE UNIVERSIDADES Y OTROS ESTABLECIMIENTOS DE EDUCACIËN SUPERIOR',
+ 'PROFESORES DE UNIVERSIDADES Y OTROS ESTABLECIMIENTOS DE EDUCACIÓN SUPERIOR',
+ 'PROFESORES E INSTRUCTORES DE EDUCACIËN ESPECIAL',
+ 'PROFESORES E INSTRUCTORES DE EDUCACIÓN ESPECIAL', 'PROFESIONALES DE LA EDUCACIËN, NO CLASIFICADOS BAJO OTROS EP═GRAFES',
+ 'PROFESIONALES DE LA EDUCACIÓN, NO CLASIFICADOS BAJO OTROS EPÍGRAFES']
+
+H= 'PROFESORES'
+
+I= [ 'VENDEDORES A DOMICILIO Y POR TELÉFONO',
+ 'VENDEDORES AMBULANTES',
+ 'VENDEDORES EN QUIOSCOS Y PUESTOS DE MERCADO',
+ 'VENDEDORES, DEMOSTRADORES DE TIENDAS Y ALMACENES']
+
+J= 'VENDEDORES'
+
+K=[ 'DIRECTORES DE DEPARTAMENTOS DE PRODUCCIËN Y OPERACIONES EN COMERCIO MAYORISTA Y MINORISTAS',
+ 'DIRECTORES DE DEPARTAMENTOS DE PRODUCCIÓN Y OPERACIONES EN AGRICULTURA, CAZA, SILVICULTURA Y PESCA',
+ 'DIRECTORES DE DEPARTAMENTOS DE PRODUCCIÓN Y OPERACIONES EN COMERCIO MAYORISTA Y MINORISTAS',
+ 'DIRECTORES DE DEPARTAMENTOS DE PRODUCCIÓN Y OPERACIONES EN CONSTRUCCIÓN Y OBRAS PÚBLICAS',
+ 'DIRECTORES DE DEPARTAMENTOS DE PRODUCCIÓN Y OPERACIONES EN INDUSTRIAS MANUFACTURERAS Y EXTRACTIVAS',
+ 'DIRECTORES GENERALES, DE EMPRESAS O ENTIDADES DE LA ADMINISTRACIËN P┌BLICA',
+ 'DIRECTORES Y GERENTES GENERALES DE EMPRESAS PRIVADAS',
+ 'DIRIGENTES Y ADMINISTRADORES DE ORGANIZACIONES DE EMPLEADORES, DE TRABAJADORES Y DE OTRAS DE INTERÉS SOCIOECONÓMICO']
+
+L= 'DIRECTORES'
+
+M= [ 'MECÁNICOS Y AJUSTADORES DE MÁQUINAS AGRÍCOLAS E INDUSTRIALES',
+ 'MECÁNICOS Y AJUSTADORES DE VEHÍCULOS DE MOTOR',
+ 'MECÁNICOS Y REPARADORES DE INSTRUMENTOS DE PRECISIÓN',
+ 'MEC┴NICOS Y AJUSTADORES DE VEH═CULOS DE MOTOR']
+
+N= 'MECÁNICOS'
+
+O= ['INGENIEROS CIVILES, INGENIEROS DE TRANSPORTE Y AFINES',
+ 'INGENIEROS ELÉCTRICOS, INGENIEROS ELECTRÓNICOS DE TELECOMUNICACIONES Y AFINES',
+ 'INGENIEROS INDUSTRIALES Y AFINES',
+ 'INGENIEROS MEC┴NICOS','AYUDANTE DE TALLER, MECÁNICA, VEHÍCULOS DE MOTOR Y AFINES']
+
+P= 'INGENIEROS'
+
+Q=['COORDINADORES Y SUPERVISORES DE ALMACENAMIENTO, ABASTECIMIENTO Y DISTRIBUCIÓN',
+ 'COORDINADORES Y SUPERVISORES DE PRODUCCIËN Y OPERACIONES EN CUIDADOS PERSONALES, LIMPIEZA Y SERVICIOS SIMILARES',
+ 'COORDINADORES Y SUPERVISORES DE PRODUCCIÓN Y OPERACIONES EN CUIDADOS PERSONALES, LIMPIEZA Y SERVICIOS SIMILARES',
+ 'COORDINADORES Y SUPERVISORES DE VENTAS Y COMERCIALIZACIÓN',
+ 'COORDINADORES Y SUPERVISORES EN MANDOS MEDIOS DE PRODUCCIÓN Y OPERACIONES EN EMPRESAS PÚBLICAS Y PRIVADAS, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'COORDINADORES Y SUPERVISORES FINANCIEROS Y ADMINISTRATIVOS',
+ 'OTROS COORDINADORES Y SUPERVISORES EN MANDOS MEDIOS DE EMPRESAS PÚBLICAS Y PRIVADAS, NO CLASIFICADAS BAJO OTROS EPÍGRAFES']
+
+R= 'COORDINADORES'
+
+S= ['CONDUCTORES DE BUSES, MICROBUSES Y COLECTIVOS',
+ 'CONDUCTORES DE CAMIONES Y VEHÍCULOS PESADOS',
+ 'CONDUCTORES DE CAMIONETAS Y VEHÍCULOS LIVIANOS',
+ 'CONDUCTORES DE TAXIS',
+ 'CONDUCTORES DE VEHÍCULOS ACCIONADOS A PEDAL O A BRAZO',
+ 'CONDUCTORES DE VEH═CULOS DE TRACCIËN ANIMAL']
+
+T= 'CONDUCTORES'
+
+U= [ 'AUXILIARES ADMINISTRATIVOS Y AFINES',
+ 'AUXILIARES DE ENFERMERÍA Y ODONTOLOGÍA',
+ 'AUXILIARES DE LA POLICIA NACIONAL',
+'ASISTENTES DE COMERCIO EXTERIOR',
+ 'ASISTENTES DE ENSEÑANZA EN EDUCACIÓN PREESCOLAR', 'SECRETARIOS (AS)']
+
+V= 'AUXILIARES - ASISTENTES'
+
+W= ['MÉDICOS',
+ 'MÉDICOS VETERINARIOS Y ZOOTECNISTAS',
+ 'MÉDICOS, PROFESIONALES EN CIENCIAS DE LA SALUD Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+'ENFERMEROS(AS) PROFESIONALES']
+
+X= 'MÉDICOS'
+
+Y= ['AGRICULTORES DE CULTIVOS PERMANENTES (PLANTACIONES DE ÁRBOLES Y ARBUSTOS)',
+ 'AGRICULTORES DE CULTIVOS TRANSITORIOS','CRIADORES DE GANADO Y TRABAJADORES DE LA CR═A DE ANIMALES DOM╔STICOS DIVERSOS',
+ 'TRABAJADORES AGROPECUARIOS',
+ 'TRABAJADORES DE HUERTAS, INVERNADEROS, VIVEROS Y JARDINES',
+ 'TRABAJADORES PECUARIOS, GANADEROS Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'TRABAJADORES PECUARIOS, GANADEROS Y AFINES, NO CLASIFICADOS BAJO OTROS EP═GRAFES',]
+
+Z= 'TRABAJOS EN EL CAMPO'
+
+OTRO = ['ABOGADOS',  'ACOMPAÑANTES',
+ 'ACTIVIDADES NO ESPECIFICADAS',
+ 'ALBAÑILES, MAMPOSTEROS Y AFINES',
+ 'ALFAREROS Y AFINES (BARRO, ARCILLA Y ABRASIVOS)',
+ 'ANALISTAS DE SISTEMAS INFORMÁTICOS',
+ 'ARQUITECTOS Y URBANISTAS',
+ 'ARTESANOS DE LA MADERA Y MATERIALES SIMILARES',
+ 'ASEADORES Y FUMIGADORES DE OFICINAS, HOTELES Y OTROS ESTABLECIMIENTOS',
+ 'ATLETAS, DEPORTISTAS Y AFINES',
+ 'BOMBEROS Y RESCATISTAS',
+ 'BORDADORES Y AFINES',
+ 'CAJEROS Y EXPENDEDORES DE BILLETES',
+ 'CARNICEROS, PESCADEROS Y AFINES',
+ 'CARPINTEROS DE ARMAR Y DE BLANCO',
+ 'CATADORES Y CLASIFICADORES DE ALIMENTOS Y BEBIDAS',
+ 'COCINEROS Y AFINES',
+ 'COMPOSITORES, M┌SICOS Y CANTANTES',
+ 'COMPRADORES',
+ 'CONTADORES',
+ 'DESCANSAR, DORMIR, COMER O PARTICIPAR EN OTRAS ACTIVIDADES VITALES',
+ 'EBANISTAS Y AFINES',
+ 'ELECTRICISTAS DE OBRAS Y AFINES',
+ 'ELECTROTÉCNICOS',
+ 'ELECTROT╔CNICOS',
+ 'EMBALADORES MANUALES Y OTROS OBREROS DE LA INDUSTRIA MANUFACTURERA',
+ 'ENCARGADOS DE SERVICIOS DE TRANSPORTE',
+ 'ENSAMBLADORES DE MECANISMOS Y ELEMENTOS MECÁNICOS DE MÁQUINAS',
+ 'ESCRITORES, PERIODISTAS Y AFINES',
+ 'ESCULTORES, PINTORES Y AFINES',
+ 'ESPECIALISTAS EN ORGANIZACIÓN, ADMINISTRACIÓN DE EMPRESAS, ANÁLISIS FINANCIERO Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'ESTUDIANTE',
+ 'FONOAUDÍOLOGOS, FISIOTERAPEUTAS Y AFINES',
+ 'GUARDIANES DE PRISIÓN',
+ 'HERREROS Y FORJADORES',
+ 'HOGAR',
+ 'INSTALADORES Y REPARADORES DE TELÉGRAFOS, TELÉFONOS Y LÍNEAS ELECTRICAS',
+ 'JOYEROS, ORFEBRES Y PLATEROS',
+ 'LIMPIABOTAS Y OTROS TRABAJADORES CALLEJEROS',
+ 'MARINEROS DE CUBIERTA Y AFINES',
+ 'MENSAJEROS, PORTEADORES Y REPARTIDORES',
+ 'MESEROS, TABERNEROS Y AFINES',
+ 'NIÑERAS Y CUIDADORAS INFANTILES',
+ 'OCIO',
+ 'OFICIALES DE LA POLICÍA NACIONAL',
+ 'OFICIALES DE LAS FMS001',
+ 'OFICIALES Y OPERARIOS DE LA CONSTRUCCIÓN Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'OTRAS ACTIVIDADES ESPECÍFICAS',
+ 'OTRO TRABAJO',
+ 'OTROS ARTESANOS, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'OTROS TRABAJADORES DE SERVICIOS PERSONALES A PARTICULARES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'OTROS TRABAJADORES DE SERVICIOS PERSONALES A PARTICULARES, NO CLASIFICADOS BAJO OTROS EP═GRAFES',
+ 'PANADEROS, PASTELEROS Y CONFITEROS',
+ 'PELUQUEROS, ESPECIALISTAS EN TRATAMIENTOS DE BELLEZA Y AFINES',
+ 'PENSIONADO',
+ 'PERSONAL DE LOS SERVICIOS DE PROTECCIËN Y SEGURIDAD, NO CLASIFICADO BAJO OTROS EP═GRAFES',
+ 'PERSONAL DE LOS SERVICIOS DE PROTECCIÓN Y SEGURIDAD, NO CLASIFICADO BAJO OTROS EPÍGRAFES',
+ 'PESCADORES',
+ 'PINTORES DECORADORES DE VIDRIO, CERÁMICA Y OTROS MATERIALES',
+ 'PINTORES, BARNIZADORES Y ENLACADORES DE ARTÍCULOS METÁLICOS Y AFINES',
+ 'PINTORES, BARNIZADORES Y ENLACADORES DE ART═CULOS MET┴LICOS Y AFINES',
+ 'PINTORES, EMPAPELADORES Y AFINES',
+ 'PROFESIONALES DEL DERECHO, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'PROFESIONALES DEL DERECHO, NO CLASIFICADOS BAJO OTROS EP═GRAFES',
+ 'PSICÓLOGOS',
+ 'RECOLECTORES DE MATERIAL RECICLABLE',
+ 'REPRESENTANTES COMERCIALES Y TÉCNICOS DE VENTAS',
+ 'REVISORES, GUARDAS Y COBRADORES DE LOS SERVICIOS DE TRANSPORTE',
+ 'SACERDOTES Y RELIGIOSOS DE DISTINTAS DOCTRINAS',
+ 'SASTRES, MODISTOS COSTUREROS SOMBREREROS Y AFINES',
+ 'SOLDADORES Y OXICORTADORES',
+ 'TRABAJADORES DE LOS CUIDADOS PERSONALES Y AFINES, NO CLASIFICADOS BAJO OTROS EPÍGRAFES',
+ 'TRABAJADORES DE LOS CUIDADOS PERSONALES Y AFINES, NO CLASIFICADOS BAJO OTROS EP═GRAFES',
+ 'TRABAJADORES SOCIALES Y AFINES',
+ 'TRABAJO PARA OBTENER INGRESOS',
+ 'VIGILANTES Y CELADORES',
+ 'ZAPATEROS Y AFINES']
+
+OTRAS = 'OTRAS OCUPACIONES ESPECÍFICAS'
+
+#Ahora generamos las nuevas categorías
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(A,B)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(C,D)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(E,F)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(G,H)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(I,J)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(K,L)                                                 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(M,N) 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(O,P) 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(Q,R) 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(S,T) 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(U,V) 
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(W,X)                                             
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(Y,Z)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(OTRO,OTRAS)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace({'SIN INFORMACION':'SIN INFORMACIÓN'})                                                  
+
+#Verificamos ajustes
+sorted(BDD['OCUPACION'].unique())
+
+#Agregamos la información a los datos vacíos de la columna "Cultura, pueblo, rasgos físicos" que tiene 22 datos nulos, con la anotación "SIN INFORMACIÓN"
+BDD['Cultura, pueblo, rasgos físicos'].fillna('SIN INFORMACIÓN', inplace=True)
+
+#Verificamos categorías de la columna
+sorted(BDD['Cultura, pueblo, rasgos físicos'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Cultura, pueblo, rasgos físicos'] = BDD['Cultura, pueblo, rasgos físicos'].replace({'NEGRO(A), MULATO(A), AFRO COLOMBIANO(A) O AFRO DESCENDIENTE': 'NEGRO(A), MULATO(A), AFROCOLOMBIANO(A) O AFRODESCENDIENTE',
+                                                   'NINGUNA DE LAS ANTERIORES':'NINGUNA',
+                                                   'NINGUNO DE LOS ANTERIORES':'NINGUNA'})
+
+#Verificamos ajustes
+sorted(BDD['Cultura, pueblo, rasgos físicos'].unique())
+
+#Como los datos son aplicados a Colombia y las variables "País de residencia", "Departamento de residencia" y "Municipio de residencia" tienen 2 datos nulos cada una, se procede a eliminar estas dos filas para cada una.
+BDD = BDD.dropna(subset=['País de residencia', 'Departamento de residencia', 'Municipio de residencia'])
+
+#Verificamos datos nulos
+BDD.isnull().sum()
