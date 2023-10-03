@@ -72,9 +72,14 @@ BDD['N°'] = range(1, len(BDD) + 1)
 #Verificamos que no queden datos nulos-vacíos
 BDD['N°'].isnull().sum()
 
-#Como la columna "Departamento defunción" no tiene datos nulos, verificamos entonces sus categorías en orden alfabético para detectar posibles errores en el ingreso de datos 
+#Como la columna "Departamento defunción" no tiene datos nulos, verificamos entonces sus categorías en orden alfabético para detectar posibles errores en el ingreso de datos
 sorted(BDD['Departamento defunción'].unique())
-#No hay inconveniente con esta variable-columna
+#Verificamos la cantidad de datos por departamento
+BDD['Departamento defunción'].value_counts()
+
+#Como la gran mayoría de datos pertenecen al departamento del VALLE DEL CAUCA, nos centraremos en estos datos y eliminaremos los que pertenecen a otros departamentos
+dep_elim = ['CUNDINAMARCA','SANTA FE DE BOGOTÁ','RISARALDA','TOLIMA','NARIÑO','CASANARE','GUAVIARE']
+BDD = BDD[~BDD['Departamento defunción'].isin(dep_elim)]
 
 #Como la columna "Municipio defunción" tampoco tiene datos nulos, verificamos también sus categorías
 sorted(BDD['Municipio defunción'].unique())
@@ -169,6 +174,19 @@ BDD = BDD.dropna(subset=['Edad'])
 
 #Verificamos datos nulos
 BDD['Edad'].isnull().sum()
+
+#Ahora verificamos que los datos sean coherentes en cuanto a la edad
+sorted(BDD['Edad'].unique())
+
+#Como hay valores demasiado altos y esta podría ser una variable significativa, se eliminan las filas cuyos valores son mayores a 110 años.
+#Convertimos la columna a tipo enteros
+BDD['Edad'] = BDD['Edad'].astype(int)
+
+#Eliminamos los valores mayores a 110
+BDD = BDD[BDD['Edad'] <= 110]
+
+#Verificamos nuevamente
+sorted(BDD['Edad'].unique())
 
 #Agregamos la información a los datos vacíos de la columna "Nivel educativo " que tiene 24 datos nulos, con la anotación "SIN INFORMACIÓN"
 BDD['Nivel educativo'].fillna('SIN INFORMACIÓN', inplace=True)
@@ -589,19 +607,184 @@ sorted(BDD['Probable manera de muerte'].unique())
 #Como las variables "longitud", "latitud" y localización pueden aportarnos información espacial visual de los datos, se conservan y se reemplazan los datos nulos con cero (894 datos nulos cada uno)
 BDD['longitud'].fillna(0, inplace=True)
 BDD['latitud'].fillna(0, inplace=True)
-BDD['Geolocalización'].fillna(0, inplace=True)
+BDD['Geolocalización'].fillna('NA', inplace=True)
+
+#Confirmamos el tipo object para la variable de geolocalización
+BDD['Geolocalización'] = BDD['Geolocalización'].astype(object)
 
 #Verificamos los datos nulos
-#Verificamos datos nulos
 BDD.isnull().sum()
 
 #No quedan datos nulos en las variables, y para garantizar que la información de las variables "año" y "mes" sean correctas, se reemplaza la información de estas columnas a partir de la variable "Fecha de Defunción"
 # Extraer el nombre del mes y agregarlo en la columna 'mes'
 BDD['mes'] = BDD['Fecha de Defunción'].dt.strftime('%B')
-# Extraer el año y crear una nueva columna 'año'
+# Extraer el año y agregarlo en columna 'año'
 BDD['año'] = BDD['Fecha de Defunción'].dt.year
 
 #Verificamos el contenido de las variables
 BDD[['año', 'mes']]
 
 #Hemos finalizado la limpieza y preprocesamiento de todas las variables en la base de datos.
+#Verificamos las dimensiones finales del conjunto de datos
+
+
+##EXPLORACIÓN Y ANÁLISIS DE LOS DATOS
+#ahora haremos una exploración rapida de las variables
+EXP= sv.analyze(BDD)
+EXP.show_notebook()
+
+# crear dataset para Cantidad de defunciones por Sexo y por año
+
+BASE_A = BDD.groupby(['Sexo','año'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_A = px.bar(BASE_A, x = 'año', y ='N°', color ='Sexo', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_A.update_layout(
+    title = '<b>Cantidad de defunciones por Sexo y por año<b>',
+    xaxis_title = 'Año de defunción',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_A.show()
+
+# crear dataset para Cantidad de defunciones por Municipio y por año
+
+BASE_B = BDD.groupby(['Municipio defunción','año'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_B = px.bar(BASE_B, x = 'año', y ='N°', color ='Municipio defunción', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_B.update_layout(
+    title = '<b>Cantidad de defunciones por Municipio y por año<b>',
+    xaxis_title = 'Año de defunción',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_B.show()
+
+#Observamos en el mapa, la distribución de muertes
+
+#Importamos librería requerida
+import folium
+
+# Crea un mapa centrado en una ubicación inicial
+mapa = folium.Map(location=[BDD['latitud'].mean(), BDD['longitud'].mean()], zoom_start=10)
+
+for index, row in BDD.iterrows():
+    folium.Marker([row['latitud'], row['longitud']]).add_to(mapa)
+    
+from IPython.display import IFrame
+display(mapa)
+
+# crear dataset para Cantidad de defunciones por la Probable manera de muerte y por año
+
+BASE_C = BDD.groupby(['Probable manera de muerte','año'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_C = px.bar(BASE_C, x = 'año', y ='N°', color ='Probable manera de muerte', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_C.update_layout(
+    title = '<b>Cantidad de defunciones por la Probable manera de muerte y por año<b>',
+    xaxis_title = 'Año de defunción',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_C.show()
+
+
+# crear dataset para Cantidad de defunciones por Edad y por año
+
+BASE_D = BDD.groupby(['Edad','año'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_D = px.bar(BASE_D, x = 'año', y ='N°', color ='Edad', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_D.update_layout(
+    title = '<b>Cantidad de defunciones por Edad y por año<b>',
+    xaxis_title = 'Año de defunción',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_D.show()
+
+
+# crear dataset para Cantidad de defunciones por Estado civil y por Nivel educativo
+
+BASE_E = BDD.groupby(['Nivel educativo','Estado civil'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_E = px.bar(BASE_E, x = 'Estado civil', y ='N°', color ='Nivel educativo', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_E.update_layout(
+    title = '<b>Cantidad de defunciones por Estado civil y por Nivel educativo<b>',
+    xaxis_title = 'Estado civil',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_E.show()
+
+# crear dataset para Cantidad de defunciones por mes y por Probable manera de muert
+
+BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_F = px.bar(BASE_F, x = 'Probable manera de muerte', y ='N°', color ='mes', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_F.update_layout(
+    title = '<b>Cantidad de defunciones por mes y por Probable manera de muerte<b>',
+    xaxis_title = 'Probable manera de muerte',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_F.show()
+
+# crear dataset para Cantidad de defunciones porEdad y por Probable manera de muert
+
+BASE_G = BDD.groupby(['Edad','Probable manera de muerte'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_G = px.bar(BASE_G, x = 'Probable manera de muerte', y ='N°', color ='Edad', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_G.update_layout(
+    title = '<b>Cantidad de defunciones por Edad y por Probable manera de muerte<b>',
+    xaxis_title = 'Probable manera de muerte',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_G.show()
+
+#Veamos la Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"
+# crear dataset para MUERTE NATURAL
+
+base_H = BDD[BDD['Probable manera de muerte'].isin(['NATURAL (ENFERMEDAD)'])]
+base_H = base_H.groupby(['Probable manera de muerte','Entidad administradora de salud'])[['N°']].count().reset_index()
+
+# crear gráfica
+fig_H = px.bar(base_H, x='Entidad administradora de salud', y='N°', color ='Probable manera de muerte', barmode ='group', title ='<b>Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"<b>')
+
+# agregar detalles a la gráfica
+fig_H.update_layout(
+    xaxis_title = 'Entidad administradora de salud',
+    yaxis_title = 'N° de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+fig_H.show()
+
+###########DEJAMOS HASTA AQUÍ LA EXPLORACIÓN DE LOS DATOS
+
