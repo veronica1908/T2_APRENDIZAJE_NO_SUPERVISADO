@@ -797,5 +797,164 @@ fig_H.update_layout(
 
 fig_H.show()
 
-###########DEJAMOS HASTA AQUÍ LA EXPLORACIÓN DE LOS DATOS
+###########DEJAMOS HASTA AQUÍ LA EXPLORACIÓN DE LOS DATOS###########
+#Aplicación de Algoritmo K-means
+#Creación de dataset
+#Para poder continuar, debemos ajustar la base y sus variables, pasándolas a númericas
+
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# Separar variables numéricas y categóricas
+numeric_features = ['Edad', 'longitud', 'latitud', 'año', 'N°']
+categorical_features = ['Departamento defunción', 'Municipio defunción', 'Área defunción',
+                        'Sitio defunción', 'Otro sitio de defunción', 'Nombre institución de defunción', 'Tipo de defunción',
+                        'Fecha de Defunción', 'Sexo', 'Estado civil', 'Nivel educativo', 'Ocupación específica', 'Cultura, pueblo, rasgos físicos',
+                        'País de residencia', 'Departamento de residencia', 'Municipio de residencia', 'Area de residencia', 'Barrio de fallecido',
+                        'Vereda del fallecido', 'Seguridad social', 'Entidad administradora de salud', 'Probable manera de muerte',
+                        'mes', 'Geolocalización', 'OCUPACION']
+
+# Crear transformador de columnas
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(), categorical_features)])
+
+# Crear un pipeline
+pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
+
+# Aplicar el preprocesamiento a tus datos
+X_processed = pipeline.fit_transform(BDD)
+
+#Creación de clusters desde la base procesada
+
+# Extraer las características de la base de datos en un arreglo NumPy
+features = X_processed
+
+# Obtener el número de muestras y características
+n_samples, n_features = features.shape
+
+# Definir el número de centros (clusters)
+centers = 3
+
+# Definir la desviación estándar (cluster_std)
+cluster_std = 1.0
+
+# Generar el conjunto de datos sintético
+synthetic_data, true_labels = make_blobs(n_samples=n_samples,
+                                         n_features=n_features,
+                                         centers=centers,
+                                         cluster_std=cluster_std,
+                                         random_state=42)
+
+features[:5]
+
+true_labels[:5]
+
+#Preprocesamiento de los datos
+from sklearn.preprocessing import StandardScaler
+from scipy.sparse import csr_matrix
+
+# Conviértela a un formato compatible con scipy.sparse
+X_sparse = csr_matrix(features)
+
+# Crea un objeto StandardScaler para matrices dispersas
+scaler = StandardScaler(with_mean=False)
+
+# Aplica el escalamiento
+scaled_features = scaler.fit_transform(X_sparse)
+
+scaled_features[:5]
+
+#Algoritmo K-means
+
+# Creación de modelo de Kmeans
+kmeans = KMeans(init="random",
+                n_clusters=3,
+                n_init=10,
+                max_iter=100,
+                random_state=42)
+
+# Ajuste de algoritmo a caracteristicas escaladas
+kmeans.fit(scaled_features)
+
+# el valor del SSE mas bajo
+print("valor del SSE mas bajo: ", kmeans.inertia_)
+
+# Coordenadas de los centroides
+print(kmeans.cluster_centers_)
+
+# Numero de interaciones necesarias para converger
+print("Numero de iteraciones: ",kmeans.n_iter_)
+
+# Etiqueta de los datos generadas por Kmeans
+kmeans.labels_[:5]
+
+#Predecir valores de etiquetas
+label = kmeans.fit_predict(scaled_features)
+
+print(label)
+
+
+################################
+#Obtener valores unicos de cluster   (AJUSTAR: Para solucionar este problema, asegúrese de que scaled_featuresy label estén
+# definidos correctamente y que estén en un formato que pueda ser indexado de esta manera.)
+
+#u_labels = np.unique(label)
+
+#Diagramar el resultado:
+#for i in u_labels:
+    #plt.scatter(scaled_features[label == i,0] , scaled_features[label == i,1] , label = i)
+#plt.legend()
+#plt.show()
+#######################################
+
+#Elección del número apropiado de clústeres
+#Método del codo
+# Argumentos del algoritmo
+kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
+# Lista que almacena los valores de SSE para cada valor K
+sse = []
+# Ciclo para entrenar algoritmos de kmeans con cada valor de k
+for k in range(1, 11):
+  kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
+  kmeans.fit(scaled_features)
+  sse.append(kmeans.inertia_)
+
+# Visualización de resultados
+plt.style.use("fivethirtyeight")
+plt.plot(range(1, 11), sse)
+plt.xticks(range(1, 11))
+plt.xlabel("Number of Clusters")
+plt.ylabel("SSE")
+plt.show()
+
+# Seleccion automatica del numero k
+kl = KneeLocator(range(1, 11),
+                 sse, curve="convex",
+                 direction="decreasing")
+
+kl.elbow
+
+#Coeficiente de silueta
+
+# Lista contiene los coeficientes de silueta para cada k
+silhouette_coefficients = []
+# Fíjate que empiezas con 2 grupos para el coeficiente de silueta
+for k in range(2, 11):
+  kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
+  kmeans.fit(scaled_features)
+  score = silhouette_score(scaled_features, kmeans.labels_)
+  silhouette_coefficients.append(score)
+
+# Visualización de resultados
+plt.style.use("fivethirtyeight")
+plt.plot(range(2, 11), silhouette_coefficients)
+plt.xticks(range(2, 11))
+plt.xlabel("Number of Clusters")
+plt.ylabel("Silhouette Coefficient")
+plt.show()
+
+
 
