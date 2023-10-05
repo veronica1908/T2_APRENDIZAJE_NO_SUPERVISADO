@@ -806,7 +806,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
-# Separar variables numéricas y categóricas
+# Separar variables numéricas y categóricas (Esto es importante para poder aplicar diferentes transformaciones a cada tipo de variable)
 numeric_features = ['Edad', 'longitud', 'latitud', 'año', 'N°']
 categorical_features = ['Departamento defunción', 'Municipio defunción', 'Área defunción',
                         'Sitio defunción', 'Otro sitio de defunción', 'Nombre institución de defunción', 'Tipo de defunción',
@@ -815,7 +815,9 @@ categorical_features = ['Departamento defunción', 'Municipio defunción', 'Áre
                         'Vereda del fallecido', 'Seguridad social', 'Entidad administradora de salud', 'Probable manera de muerte',
                         'mes', 'Geolocalización', 'OCUPACION']
 
-# Crear transformador de columnas
+# Crear transformador de columnas (Para las variables numéricas, se aplica una estandarización ( StandardScaler), que escala las características de manera que tengan una media de 0 y una desviación estándar de 1.
+#Para las variables categóricas, se aplica un codificador one-hot ( OneHotEncoder), que convierte las variables categóricas en una representación binaria.)
+
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', StandardScaler(), numeric_features),
@@ -826,20 +828,18 @@ pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
 
 # Aplicar el preprocesamiento a tus datos
 X_processed = pipeline.fit_transform(BDD)
+#El resultado ( X_processed) es la base de datos con las transformaciones aplicadas.
 
 #Creación de clusters desde la base procesada
 
-# Extraer las características de la base de datos en un arreglo NumPy
-features = X_processed
-
-# Obtener el número de muestras y características
-n_samples, n_features = features.shape
+# Obtener el número de muestras y características (n_samples representa el número de muestras (filas), y n_features representa el número de características (columnas).)
+n_samples, n_features = X_processed.shape
 
 # Definir el número de centros (clusters)
-centers = 3
+centers = 3 ###ESTO PODEMOS CAMBIARLO
 
 # Definir la desviación estándar (cluster_std)
-cluster_std = 1.0
+cluster_std = 1.0 ###ESTO PODEMOS CAMBIARLO
 
 # Generar el conjunto de datos sintético
 synthetic_data, true_labels = make_blobs(n_samples=n_samples,
@@ -848,26 +848,36 @@ synthetic_data, true_labels = make_blobs(n_samples=n_samples,
                                          cluster_std=cluster_std,
                                          random_state=42)
 
+
+# Extraer las características de la base de datos en un arreglo NumPy
+features = synthetic_data
+
+#Mostrar las cinco primeras filas
 features[:5]
 
+#En resumen, se trata de una matriz dispersa de 5 filas y 1354 columnas con 150 elementos distintos de cero almacenados.
+
+#Esto permite ver una muestra inicial de las etiquetas reales asociadas a las primeras muestras del conjunto de datos.
 true_labels[:5]
 
-#Preprocesamiento de los datos
+##Preprocesamiento de los datos
+
 from sklearn.preprocessing import StandardScaler
 from scipy.sparse import csr_matrix
 
-# Conviértela a un formato compatible con scipy.sparse
+# Convertir a un formato compatible con scipy.sparse
 X_sparse = csr_matrix(features)
 
-# Crea un objeto StandardScaler para matrices dispersas
-scaler = StandardScaler(with_mean=False)
+# Crear un objeto StandardScaler para matrices dispersas
+scaler = StandardScaler(with_mean=False) #no se centran las características en cero
 
-# Aplica el escalamiento
-scaled_features = scaler.fit_transform(X_sparse)
+# Aplicar el escalamiento
+scaled_features = scaler.fit_transform(features)
 
+#obtener las primeras cinco filas de un conjunto de datos que ha sido escalado. Esto mostrará una muestra de cómo se ven las primeras cinco muestras después de aplicar la escalada
 scaled_features[:5]
 
-#Algoritmo K-means
+Algoritmo K-means
 
 # Creación de modelo de Kmeans
 kmeans = KMeans(init="random",
@@ -896,22 +906,21 @@ label = kmeans.fit_predict(scaled_features)
 
 print(label)
 
-
-################################
 #Obtener valores unicos de cluster   (AJUSTAR: Para solucionar este problema, asegúrese de que scaled_featuresy label estén
 # definidos correctamente y que estén en un formato que pueda ser indexado de esta manera.)
 
-#u_labels = np.unique(label)
+u_labels = np.unique(label)
 
 #Diagramar el resultado:
-#for i in u_labels:
-    #plt.scatter(scaled_features[label == i,0] , scaled_features[label == i,1] , label = i)
-#plt.legend()
-#plt.show()
-#######################################
+for i in u_labels:
+    plt.scatter(scaled_features[label == i,0] , scaled_features[label == i,1] , label = i)
+plt.legend()
+plt.show()
 
-#Elección del número apropiado de clústeres
+Elección del número apropiado de clústeres
+
 #Método del codo
+
 # Argumentos del algoritmo
 kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
 # Lista que almacena los valores de SSE para cada valor K
@@ -955,6 +964,8 @@ plt.xticks(range(2, 11))
 plt.xlabel("Number of Clusters")
 plt.ylabel("Silhouette Coefficient")
 plt.show()
+
+
 
 
 
