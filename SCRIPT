@@ -874,7 +874,7 @@ c= BDD.corr()
 sns.heatmap(c, annot=True)
 #Solo se observa una correlación baja entre la edad y el nivel de compromiso.
 
-"""#Aplicación de Algoritmo K-means
+"""#Preparación de los datos para aplicar algoritmos
 
 ##Creación de dataset
 """
@@ -952,7 +952,7 @@ scaled_features = scaler.fit_transform(features)
 #obtener las primeras cinco filas de un conjunto de datos que ha sido escalado. Esto mostrará una muestra de cómo se ven las primeras cinco muestras después de aplicar la escalada
 scaled_features[:5]
 
-"""##Algoritmo K-means"""
+"""#Aplicación de Algoritmo K-means"""
 
 # Creación de modelo de Kmeans
 kmeans = KMeans(init="random",
