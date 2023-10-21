@@ -1,3 +1,7 @@
+# Importación de librerías y cargar base de datos
+"""
+
+# Commented out IPython magic to ensure Python compatibility.
 #Preparamos complementos, librerías y bases disponibles
 import warnings
 
@@ -87,16 +91,16 @@ sorted(BDD['Departamento defunción'].unique())
 BDD['Departamento defunción'].value_counts()
 
 #Como la gran mayoría de datos pertenecen al departamento del VALLE DEL CAUCA, nos centraremos en estos datos y eliminaremos los que pertenecen a otros departamentos
-dep_elim = ['CUNDINAMARCA','SANTA FE DE BOGOTÁ','RISARALDA','TOLIMA','NARIÑO','CASANARE','GUAVIARE']
+dep_elim = ['CUNDINAMARCA','SANTA FE DE BOGOTÁ','RISARALDA','TOLIMA','NARIÑO','CASANARE','GUAVIARE','QUINDIO']
 BDD = BDD[~BDD['Departamento defunción'].isin(dep_elim)]
 
 #Como la columna "Municipio defunción" tampoco tiene datos nulos, verificamos también sus categorías
 sorted(BDD['Municipio defunción'].unique())
 #se observa que pueden combinarse las categorías "CALIMA' y 'CALIMA (DARIEN)'
 
-#Se combinan las categorías "CALIMA' y 'CALIMA (DARIEN)'
+#Se combinan las categorías "CALIMA' y 'CALIMA (DARIEN)' y BUGA con GUADALAJARA DE BUGA
 BDD['Municipio defunción'] = BDD['Municipio defunción'].replace({'CALIMA (DARIEN)': 'CALIMA'})
-
+BDD['Municipio defunción'] = BDD['Municipio defunción'].replace({'BUGA': 'GUADALAJARA DE BUGA'})
 #Verificamos
 sorted(BDD['Municipio defunción'].unique())
 
@@ -532,6 +536,32 @@ BDD = BDD.dropna(subset=['País de residencia', 'Departamento de residencia', 'M
 #Verificamos datos nulos
 BDD.isnull().sum()
 
+#Verificamos categorías de la columna DE MUNICIPIO RESIDENCIA
+sorted(BDD['Municipio de residencia'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Municipio de residencia'] = BDD['Municipio de residencia'].replace({'BOLÍVAR':'BOLIVAR',
+                                                                              'BUGA':'GUADALAJARA DE BUGA',
+                                                                              'ALTOS DE GUADALAJARA':'ALTOS DEL GUADALAJARA',
+                                                                              'CALI (SANTIAGO DE CALI)':'CALI',
+                                                                              'CALIMA (DARIEN)':'CALIMA',
+                                                                              'GUACARÍ':'GUACARI',
+                                                                              'JAMUNDÍ':'JAMUNDI',
+                                                                              'LA UNIÓN':'LA UNION',
+                                                                              'RIOFRÍO':'RIOFRIO',
+                                                                              'TULUA':'TULUÁ'})
+#Verificamos ajustes
+sorted(BDD['Municipio de residencia'].unique())
+
+#Verificamos categorías de la columna DE DEPARTAMENTO RESIDENCIA
+sorted(BDD['Departamento de residencia'].unique())
+
+#Vamos a unificar algunas categorías
+BDD['Departamento de residencia'] = BDD['Departamento de residencia'].replace({'QUINDIO':'QUINDÍO'
+})
+#Verificamos ajustes
+sorted(BDD['Departamento de residencia'].unique())
+
 #Agregamos la información a los datos vacíos de la columna "Area de residencia" que tiene 4 datos nulos, con la anotación "SIN INFORMACIÓN"
 BDD['Area de residencia'].fillna('SIN INFORMACIÓN', inplace=True)
 
@@ -640,8 +670,8 @@ BDD['Entidad administradora de salud'] = BDD['Entidad administradora de salud'].
                                                                                          'ASOCIACIÓN MUTUAL LA ESPERANZA - ASMET SALUD':'ASMET SALUD EPS SAS',
                                                                                          'ASOCIACIÓN MUTUAL LA ESPERANZA - ASMET SALUD -CM':'ASMET SALUD EPS SAS',
                                                                                          'ASOCIACIÓN MUTUAL LA ESPERANZA ASMET  SALUD-CM':'ASMET SALUD EPS SAS',
-                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S. -CM':'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S.',
-                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO E.S.S. EMSSANAR E.S.S.-CM':'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S.',
+                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO - EMSSANAR E.S.S. -CM':'EMSSANAR S.A.S.',
+                                                                                         'ASOCIACIÓN MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO E.S.S. EMSSANAR E.S.S.-CM':'EMSSANAR S.A.S.',
                                                                                          'CAFESALUD E.P.S.':'CAFESALUD E.P.S.  S.A.',
                                                                                          'COMFENALCO VALLE':'COMFENALCO  VALLE  E.P.S.',
                                                                                          'COMPENSAR   E.P.S.-CM':'COMPENSAR   E.P.S.',
@@ -707,11 +737,23 @@ BDD[['año', 'mes']]
 #Verificamos las dimensiones finales del conjunto de datos
 BDD.shape
 
-"""#Exploración y análisis de datos   (falta agregar el texto de análisis)"""
+"""#Exploración y análisis de datos"""
 
 #ahora haremos una exploración rápida de las variables
 EXP= sv.analyze(BDD)
 EXP.show_notebook()
+
+"""Teniendo en cuenta la exploración rápida de los datos para cada variable, tenemos lo siguiente: Todos los datos de defunciones de la base, son de personas que vivían y murieron en Colombia, del departamento del Valle del Cauca, principalmente en el municipio de Guadalajara de Buga con el 99%, sin embargo sus municipios de residencia variaban entre Buga con el 73% y Guacari con un 7%. La principal área de defunción ha sido la cabecera municipal con el 96% de los casos en diferentes barrios, 2% en área rural dispersa y 1% en un centro poblado.
+En cuanto al sitio específico de defunción, el 64% ha fallecido en el hospital, el 30% en su casa, 5% en vías públicas y el otro 1% en otros lugares.
+Las instituciones de salud en las que se han presentado mayor cantidad de fallecidos son la Fundación Hospital San José con el 74% de los casos, 6% en la E.S.E. Hospital Divino Niño y hay un 15% sin información.
+Para el tipo de defunción, se ha tenido un 100% de defunciones de tipo No fetal, la mayoría de fallecidos han sido del sexo Masculino con el 56%, el 25% de fallecidos estaban viudos, el 23% estaban casados, el 22% solteros. La mayoría de fallecidos eran mayores de 50 años de edad, su nivel educativo era principalmente básica primaria (55%) y en segundo lugar básica secundaria con 15%. El 30% se ocupaba de su hogar y se tiene un 42% sin esta información de ocupación. En cuanto a rasgos físicos y cultura, la mayoría no tenía alguna clasificación (98%), solo un 2% era afrocolombiano y menos del 1% indígena.
+
+La mayoría de fallecidos contaban con seguridad social: 48% Contributivo y 48% subsidiado, la EPS era principalmente Nueva EPS con el 31% y luego EMSSANAR E.S.S. con el 17%.
+
+La muerte natural por enfermedad con un 65% es la que más se presentó. Se tiene un 25% de los casos sin información.
+
+Los datos son principalmente de los años 2021 y 2022 y los meses con mayor cantidad d efallecidos fueron los meses de Julio y enero con 11% cada uno y luego Junio con el 10% de los casos.
+"""
 
 # crear dataset para Cantidad de defunciones por Sexo y por año
 
@@ -730,36 +772,7 @@ fig_A.update_layout(
 
 fig_A.show()
 
-# crear dataset para Cantidad de defunciones por Municipio y por año
-
-BASE_B = BDD.groupby(['Municipio defunción','año'])[['Fecha de Defunción']].count().reset_index()
-
-# crear gráfica
-fig_B = px.bar(BASE_B, x = 'año', y ='Fecha de Defunción', color ='Municipio defunción', barmode = 'group')
-
-# agregar detalles a la gráfica
-fig_B.update_layout(
-    title = '<b>Cantidad de defunciones por Municipio y por año<b>',
-    xaxis_title = 'Año de defunción',
-    yaxis_title = 'Número de defunciones',
-    template = 'simple_white',
-    title_x = 0.5)
-
-fig_B.show()
-
-#Observamos en el mapa, la distribución de muertes
-
-#Importamos librería requerida
-import folium
-
-# Crea un mapa centrado en una ubicación inicial
-mapa = folium.Map(location=[BDD['latitud'].mean(), BDD['longitud'].mean()], zoom_start=10)
-
-for index, row in BDD.iterrows():
-    folium.Marker([row['latitud'], row['longitud']]).add_to(mapa)
-
-from IPython.display import IFrame
-display(mapa)
+"""Tanto en 2021 como en 2022, la mayoría de fallecidos fueron del sexo masculino."""
 
 # Crear dataset para Cantidad de defunciones por la Probable manera de muerte y por año
 BASE_C = BDD.groupby(['Probable manera de muerte', 'año'])[['Fecha de Defunción']].count().reset_index()
@@ -778,22 +791,7 @@ fig_C.update_layout(
 
 fig_C.show()
 
-# crear dataset para Cantidad de defunciones por Edad y por año
-
-BASE_D = BDD.groupby(['Edad','año'])[['Fecha de Defunción']].count().reset_index()
-
-# crear gráfica
-fig_D = px.bar(BASE_D, x = 'año', y ='Fecha de Defunción', color ='Edad', barmode = 'group')
-
-# agregar detalles a la gráfica
-fig_D.update_layout(
-    title = '<b>Cantidad de defunciones por Edad y por año<b>',
-    xaxis_title = 'Año de defunción',
-    yaxis_title = 'Número de defunciones',
-    template = 'simple_white',
-    title_x = 0.5)
-
-fig_D.show()
+"""Tanto en 2021 como en 2022, la mayoría de muertes fueron de manera natural por enfermedad, sin embargo hay una buena proporción sin información en el 2022. En 2021 se dió una porción de homicidios y en 2022 se cataloga como muerte no natural."""
 
 import plotly.express as px
 
@@ -829,6 +827,8 @@ fig_F.update_layout(
     template = 'simple_white',
     title_x = 0.5)
 
+"""la mayoría de meses domina la mkuerte por enfermedad, en todos está presente  la muerte por homicidio y una baja proporción por accidentes."""
+
 # crear dataset para Cantidad de defunciones porEdad y por Probable manera de muert
 
 BASE_G = BDD.groupby(['Edad','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
@@ -845,6 +845,8 @@ fig_G.update_layout(
     title_x = 0.5)
 
 fig_G.show()
+
+"""Cuando se observa la información pór manera de morir y su distribución de edades, se puede decir que la muerte por enfermedad predomina en personas mayores de 50 años, mientras que para el resto de maneras predominan edades inferiores a 50 años."""
 
 #Veamos la Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"
 # crear dataset para MUERTE NATURAL
@@ -863,6 +865,8 @@ fig_H.update_layout(
     title_x = 0.5)
 
 fig_H.show()
+
+"""Cuando se quiere ver la información de fallecidos por enfermedad y su EPS, se tiene que la mayoría pertenecían a La Nueva EPS, y EMSSANAR"""
 
 # Matriz de correlación
 plt.figure(figsize=(20,10))
@@ -885,12 +889,7 @@ from sklearn.pipeline import Pipeline
 
 # Separar variables numéricas y categóricas (Esto es importante para poder aplicar diferentes transformaciones a cada tipo de variable)
 numeric_features = ['Edad', 'año', 'Nivel educación', 'Nivel compromiso civil', 'Nivel SS']
-categorical_features = ['Municipio defunción', 'Área defunción',
-                        'Sitio defunción','Nombre institución de defunción', 'Tipo de defunción',
-                        'Fecha de Defunción', 'Sexo','Ocupación específica', 'Cultura, pueblo, rasgos físicos',
-                        'Municipio de residencia', 'Area de residencia', 'Barrio de fallecido',
-                        'Vereda del fallecido','Entidad administradora de salud', 'Probable manera de muerte',
-                        'mes', 'Geolocalización', 'OCUPACION']
+categorical_features = ['Municipio defunción', 'Área defunción','Sexo','Barrio de fallecido','Entidad administradora de salud', 'Probable manera de muerte','mes']
 
 # Crear transformador de columnas (Para las variables numéricas, se aplica una estandarización ( StandardScaler), que escala las características de manera que tengan una media de 0 y una desviación estándar de 1.
 #Para las variables categóricas, se aplica un codificador one-hot ( OneHotEncoder), que convierte las variables categóricas en una representación binaria.)
