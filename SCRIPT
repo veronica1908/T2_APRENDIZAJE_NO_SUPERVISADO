@@ -761,20 +761,20 @@ for index, row in BDD.iterrows():
 from IPython.display import IFrame
 display(mapa)
 
-# crear dataset para Cantidad de defunciones por la Probable manera de muerte y por año
+# Crear dataset para Cantidad de defunciones por la Probable manera de muerte y por año
+BASE_C = BDD.groupby(['Probable manera de muerte', 'año'])[['Fecha de Defunción']].count().reset_index()
 
-BASE_C = BDD.groupby(['Probable manera de muerte','año'])[['Fecha de Defunción']].count().reset_index()
+# Crear gráfica
+fig_C = px.bar(BASE_C, x='año', y='Fecha de Defunción', color='Probable manera de muerte', barmode='relative')
 
-# crear gráfica
-fig_C = px.bar(BASE_C, x = 'año', y ='Fecha de Defunción', color ='Probable manera de muerte', barmode = 'group')
-
-# agregar detalles a la gráfica
+# Agregar detalles a la gráfica
 fig_C.update_layout(
-    title = '<b>Cantidad de defunciones por la Probable manera de muerte y por año<b>',
-    xaxis_title = 'Año de defunción',
-    yaxis_title = 'Número de defunciones',
-    template = 'simple_white',
-    title_x = 0.5)
+    title='<b>Cantidad de defunciones por la Probable manera de muerte y por año<b>',
+    xaxis_title='Año de defunción',
+    yaxis_title='Número de defunciones',
+    template='simple_white',
+    title_x=0.5
+)
 
 fig_C.show()
 
@@ -795,20 +795,22 @@ fig_D.update_layout(
 
 fig_D.show()
 
-# crear dataset para Cantidad de defunciones por Edad y por año
+import plotly.express as px
 
-BASE_E = BDD.groupby(['Nivel educativo','Estado civil'])[['Fecha de Defunción']].count().reset_index()
+# Crear dataset para Cantidad de defunciones por Edad y por año
+BASE_E = BDD.groupby(['Nivel educativo', 'Estado civil'])[['Fecha de Defunción']].count().reset_index()
 
-# crear gráfica
-fig_E = px.bar(BASE_E, x = 'Estado civil', y ='Fecha de Defunción', color ='Nivel educativo', barmode = 'group')
+# Crear gráfica
+fig_E = px.bar(BASE_E, x='Estado civil', y='Fecha de Defunción', color='Nivel educativo', barmode='stack')
 
-# agregar detalles a la gráfica
+# Agregar detalles a la gráfica
 fig_E.update_layout(
-    title = '<b>Cantidad de defunciones por Estado civil y por Nivel educativo<b>',
-    xaxis_title = 'Estado civil',
-    yaxis_title = 'Número de defunciones',
-    template = 'simple_white',
-    title_x = 0.5)
+    title='<b>Cantidad de defunciones por Estado civil y por Nivel educativo<b>',
+    xaxis_title='Estado civil',
+    yaxis_title='Número de defunciones',
+    template='simple_white',
+    title_x=0.5
+)
 
 fig_E.show()
 
@@ -817,7 +819,7 @@ fig_E.show()
 BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_F = px.bar(BASE_F, x = 'Probable manera de muerte', y ='Fecha de Defunción', color ='mes', barmode = 'group')
+fig_F = px.bar(BASE_F, x = 'mes', y ='Fecha de Defunción', color ='Probable manera de muerte', barmode = 'stack')
 
 # agregar detalles a la gráfica
 fig_F.update_layout(
@@ -826,8 +828,6 @@ fig_F.update_layout(
     yaxis_title = 'Número de defunciones',
     template = 'simple_white',
     title_x = 0.5)
-
-fig_F.show()
 
 # crear dataset para Cantidad de defunciones porEdad y por Probable manera de muert
 
@@ -863,6 +863,14 @@ fig_H.update_layout(
     title_x = 0.5)
 
 fig_H.show()
+
+# Matriz de correlación
+plt.figure(figsize=(20,10))
+c= BDD.corr()
+sns.heatmap(c, annot=True)
+#Solo se observa una correlación baja entre la edad y el nivel de compromiso.
+
+
 
 """#Aplicación de Algoritmo K-means
 
@@ -1086,7 +1094,3 @@ print(hc.labels_)
 
 BDD['cluster'] = y_hc
 BDD.head()
-
-
-
-
