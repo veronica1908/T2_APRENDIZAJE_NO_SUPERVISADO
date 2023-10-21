@@ -874,21 +874,19 @@ c= BDD.corr()
 sns.heatmap(c, annot=True)
 #Solo se observa una correlación baja entre la edad y el nivel de compromiso.
 
-
-
 """#Aplicación de Algoritmo K-means
 
 ##Creación de dataset
 """
 
-#Para poder continuar, debemos ajustar la base y sus variables, pasándolas a númericas
+#Para poder continuar, debemos ajustar la base y sus variables, utilizando las variables numéricas y ajustando las categóricas.
 
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 # Separar variables numéricas y categóricas (Esto es importante para poder aplicar diferentes transformaciones a cada tipo de variable)
-numeric_features = ['Edad', 'año', 'Nivel educación', 'Nivel compromiso civil', 'Nivel SS']
+numeric_features = ['Edad', 'año', 'Nivel educación', 'Nivel compromiso civil', 'Nivel SS']  ## Las variables 'Nivel educación', 'Nivel compromiso civil'y 'Nivel SS' fueron codificadas en Ajuste de las variables de la base de datos
 categorical_features = ['Municipio defunción', 'Área defunción','Sexo','Barrio de fallecido','Entidad administradora de salud', 'Probable manera de muerte','mes']
 
 # Crear transformador de columnas (Para las variables numéricas, se aplica una estandarización ( StandardScaler), que escala las características de manera que tengan una media de 0 y una desviación estándar de 1.
@@ -903,7 +901,9 @@ preprocessor = ColumnTransformer(
 pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
 
 # Aplicar el preprocesamiento a tus datos
-X_processed = pipeline.fit_transform(BDD)
+
+BDD2 = BDD.copy()
+X_processed = pipeline.fit_transform(BDD2)
 #El resultado ( X_processed) es la base de datos con las transformaciones aplicadas.
 
 #Creación de clusters desde la base procesada
