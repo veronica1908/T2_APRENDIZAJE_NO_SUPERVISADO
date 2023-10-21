@@ -51,38 +51,36 @@ import matplotlib.pyplot as plt
 from kneed import KneeLocator
 from sklearn.datasets import make_blobs
 from sklearn.metrics import silhouette_score
-%matplotlib inline
+# %matplotlib inline
 
-
-#Traemos la base de datos
-
-# Lectura de los datos
+#Cargamos la base alojada en GitHub
 BDD = pd.read_csv("https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/main/BASE_SIN_PROCESAR.csv", sep = ',')
 
-#Verificamos que la base haya cargado y pueda visualizarse
+#Verificamos la visualización
 BDD.head()
+
+"""# Preprocesamiento de los datos
+
+##Información y estado de la base de datos
+"""
 
 #Verificamos las dimensiones de la base
 BDD.shape
 
-# Verificamos cuáles son las variables de la base, vemos información de las variables, como datos NO nulos y tipo de dato
+# Vemos información de las variables, como datos NO nulos y tipo de dato
 BDD.info()
+
+# Empezamos eliminando la variable N° que funciona como un identificador de losd atos de la base y que no aporta para el ejercicio.
+BDD.drop(['N°',], axis=1, inplace=True)
 
 # Vemos la cantidad de datos nulos por variable
 BDD.isnull().sum()
 
 #Existen muchos datos nulos y como las dimensiones de la base son considerablemente grandes, se eliminarán las filas cuyos datos nulos pertenezcan a variables núméricas importantes y para las filas de texto, se agregará "Sin información"
 
+"""##Ajuste de las variables de la base de datos"""
+
 #Vamos a verificar cada columna para tomar decisiones en el ajuste de datos de cada una de ellas
-#Empezamos con la columna "N°", la cual tiene 1141 datos nulos-vacíos
-print(BDD['N°'])
-
-#La columna N° es un identificador de características o filas de la base y los valores están asignados como identificador consecutivo, vamos a llenar esta columna con números los consecutivos.
-BDD['N°'] = range(1, len(BDD) + 1)
-
-#Verificamos que no queden datos nulos-vacíos
-BDD['N°'].isnull().sum()
-
 #Como la columna "Departamento defunción" no tiene datos nulos, verificamos entonces sus categorías en orden alfabético para detectar posibles errores en el ingreso de datos
 sorted(BDD['Departamento defunción'].unique())
 #Verificamos la cantidad de datos por departamento
@@ -95,7 +93,6 @@ BDD = BDD[~BDD['Departamento defunción'].isin(dep_elim)]
 #Como la columna "Municipio defunción" tampoco tiene datos nulos, verificamos también sus categorías
 sorted(BDD['Municipio defunción'].unique())
 #se observa que pueden combinarse las categorías "CALIMA' y 'CALIMA (DARIEN)'
-
 
 #Se combinan las categorías "CALIMA' y 'CALIMA (DARIEN)'
 BDD['Municipio defunción'] = BDD['Municipio defunción'].replace({'CALIMA (DARIEN)': 'CALIMA'})
@@ -113,6 +110,10 @@ sorted(BDD['Área defunción'].unique())
 BDD['Área defunción'] = BDD['Área defunción'].replace({'"CENTRO POBLADO (Inspección,\r\ncorregimiento o caserío)"': 'CENTRO POBLADO', 'CENTRO POBLADO (INSPECCIÓN, CORREGIMIENTO O CASERÍO)':'CENTRO POBLADO'})
 #Verificamos ajustes
 sorted(BDD['Área defunción'].unique())
+
+#Columna "Sitio defunción" no tiene datos nulos, verificamos categorías
+sorted(BDD['Sitio defunción'].unique())
+#No hay ajustes para esta variable
 
 #Columna "Sitio defunción" no tiene datos nulos, verificamos categorías
 sorted(BDD['Sitio defunción'].unique())
@@ -155,7 +156,7 @@ BDD.info('Fecha de Defunción')
 #Como la columna "Hora de defunción" tiene 1072 datos vacíos, pero la columna anterior de fecha, contiene también la hora y no tenía datos nulos, se elimina la columna de hora para no considerarla.
 BDD = BDD.drop('Hora de defunción', axis=1)
 
-#Verificamos categorías de la columna sexo que no tiene datos nulos.
+#Verificamos categorías de la columna 'sexo' que no tiene datos nulos.
 sorted(BDD['Sexo'].unique())
 #Sin novedades en esta columna
 
@@ -179,6 +180,25 @@ BDD['Estado civil'] = BDD['Estado civil'].replace({'ESTABA CASADO(A)': 'CASADO(A
 #Verificamos ajustes
 sorted(BDD['Estado civil'].unique())
 
+#Esta variable puede conmvertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
+#Para lo cual agregaremos la columna "Nivel compromiso civil"
+BDD['Nivel compromiso civil'] = BDD['Estado civil']
+
+#Reajustamos las categorías
+BDD['Nivel compromiso civil'] = BDD['Nivel compromiso civil'].replace({'SIN INFORMACIÓN': '0',
+                                                   'SOLTERO(A)':'1',
+                                                   'UNIÓN LIBRE':'2',
+                                                   'CASADO(A)':'3',
+                                                   'SEPARADO (A)':'4',
+                                                   'VIUDO(A)':'5'})
+
+
+#Convertimos la variable en entero
+BDD['Nivel compromiso civil'] = BDD['Nivel compromiso civil'].astype(int)
+
+#Verificamos ajustes
+sorted(BDD['Nivel compromiso civil'].unique())
+
 #Como la edad es una variable que podría tener gran significancia en esta base de datos, tener datos vacíos no sería útil y llenarlos con la media podría sesgar la información.
 #Considerando que el conjunto de datos es de buenas dimensiones, se decide eliminar las filas con valores nulos en esta variable.
 BDD = BDD.dropna(subset=['Edad'])
@@ -189,7 +209,7 @@ BDD['Edad'].isnull().sum()
 #Ahora verificamos que los datos sean coherentes en cuanto a la edad
 sorted(BDD['Edad'].unique())
 
-#Como hay valores demasiado altos y esta podría ser una variable significativa, se eliminan las filas cuyos valores son mayores a 110 años.
+#Como hay valores demasiado altos y esta podría ser una variable significativa, se eliminan las filas cuyos valores son mayores a 110 años 8 a partir de esa edad se observa un salto enorme que puede ser error de digitación)
 #Convertimos la columna a tipo enteros
 BDD['Edad'] = BDD['Edad'].astype(int)
 
@@ -219,8 +239,35 @@ BDD['Nivel educativo'] = BDD['Nivel educativo'].replace({'BASICA PRIMARIA': 'BÁ
 #Verificamos ajustes
 sorted(BDD['Nivel educativo'].unique())
 
+#Esta variable puede conmvertirse en una variable de tipo numériuca de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
+#Para lo cual agregaremos la columna "Nivel educación"
+BDD['Nivel educación'] = BDD['Nivel educativo']
+
+#Reajustamos las categorías
+BDD['Nivel educación'] = BDD['Nivel educación'].replace({'SIN INFORMACIÓN': '0',
+                                                   'NINGUNO':'1',
+                                                   'PREESCOLAR':'2',
+                                                   'BÁSICA PRIMARIA':'3',
+                                                   'BÁSICA SECUNDARIA':'4',
+                                                   'MEDIA ACADÉMICA':'5',
+                                                   'MEDIA TÉCNICA':'6',
+                                                   'TÉCNICA PROFESIONAL':'7',
+                                                   'TECNOLÓGICA':'8',
+                                                   'PROFESIONAL':'9',
+                                                   'ESPECIALIZACION':'10',
+                                                   'MAESTRÍA':'11'})
+
+
+#Convertimos la variable en entero
+BDD['Nivel educación'] = BDD['Nivel educación'].astype(int)
+
+#Verificamos ajustes
+sorted(BDD['Nivel educación'].unique())
+
 #Como la columna "Último curso fallecido" tiene 1141 datos vacíos, pero la columna anterior de "Nivel educativo", contiene información similar, se elimina esta columna de la base
 BDD = BDD.drop('Último curso fallecido', axis=1)
+
+"""##Variable OCUPACIÓN"""
 
 #Agregamos la información a los datos vacíos de la columna "Ocupación" que tiene 205 datos nulos, con la anotación "SIN INFORMACIÓN"
 BDD['Ocupación'].fillna('SIN INFORMACIÓN', inplace=True)
@@ -449,19 +496,21 @@ BDD['OCUPACION'] = BDD['OCUPACION'].replace(C,D)
 BDD['OCUPACION'] = BDD['OCUPACION'].replace(E,F)
 BDD['OCUPACION'] = BDD['OCUPACION'].replace(G,H)
 BDD['OCUPACION'] = BDD['OCUPACION'].replace(I,J)
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(K,L)                                                 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(M,N) 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(O,P) 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(Q,R) 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(S,T) 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(U,V) 
-BDD['OCUPACION'] = BDD['OCUPACION'].replace(W,X)                                             
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(K,L)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(M,N)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(O,P)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(Q,R)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(S,T)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(U,V)
+BDD['OCUPACION'] = BDD['OCUPACION'].replace(W,X)
 BDD['OCUPACION'] = BDD['OCUPACION'].replace(Y,Z)
 BDD['OCUPACION'] = BDD['OCUPACION'].replace(OTRO,OTRAS)
-BDD['OCUPACION'] = BDD['OCUPACION'].replace({'SIN INFORMACION':'SIN INFORMACIÓN'})                                                  
+BDD['OCUPACION'] = BDD['OCUPACION'].replace({'SIN INFORMACION':'SIN INFORMACIÓN'})
 
 #Verificamos ajustes
 sorted(BDD['OCUPACION'].unique())
+
+"""##Continuación de verificación y limpieza de variables"""
 
 #Agregamos la información a los datos vacíos de la columna "Cultura, pueblo, rasgos físicos" que tiene 22 datos nulos, con la anotación "SIN INFORMACIÓN"
 BDD['Cultura, pueblo, rasgos físicos'].fillna('SIN INFORMACIÓN', inplace=True)
@@ -483,7 +532,7 @@ BDD = BDD.dropna(subset=['País de residencia', 'Departamento de residencia', 'M
 #Verificamos datos nulos
 BDD.isnull().sum()
 
-#Agregamos la información a los datos vacíos de la columna "Area de residencia" que tiene 2 datos nulos, con la anotación "SIN INFORMACIÓN"
+#Agregamos la información a los datos vacíos de la columna "Area de residencia" que tiene 4 datos nulos, con la anotación "SIN INFORMACIÓN"
 BDD['Area de residencia'].fillna('SIN INFORMACIÓN', inplace=True)
 
 #Verificamos categorías de la columna
@@ -562,7 +611,25 @@ BDD['Seguridad social'].fillna('SIN INFORMACIÓN', inplace=True)
 
 #Verificamos categorías de la columna
 sorted(BDD['Seguridad social'].unique())
-#No hay más ajustes para esta columna
+
+#Esta variable puede conmvertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
+#Para lo cual agregaremos la columna "Nivel SS"
+BDD['Nivel SS'] = BDD['Seguridad social']
+
+#Reajustamos las categorías
+BDD['Nivel SS'] = BDD['Nivel SS'].replace({'SIN INFORMACIÓN': '0',
+                                                   'NO ASEGURADO':'1',
+                                                   'EXCEPCIÓN':'2',
+                                                   'SUBSIDIADO':'3',
+                                                   'CONTRIBUTIVO':'4',
+                                                   'ESPECIAL':'5'})
+
+
+#Convertimos la variable en entero
+BDD['Nivel SS'] = BDD['Nivel SS'].astype(int)
+
+#Verificamos ajustes
+sorted(BDD['Nivel SS'].unique())
 
 #Verificamos categorías de la columna "Entidad administradora de salud" que no tiene datos nulos
 sorted(BDD['Entidad administradora de salud'].unique())
@@ -636,20 +703,22 @@ BDD['año'] = BDD['Fecha de Defunción'].dt.year
 BDD[['año', 'mes']]
 
 #Hemos finalizado la limpieza y preprocesamiento de todas las variables en la base de datos.
+
 #Verificamos las dimensiones finales del conjunto de datos
+BDD.shape
 
+"""#Exploración y análisis de datos   (falta agregar el texto de análisis)"""
 
-##EXPLORACIÓN Y ANÁLISIS DE LOS DATOS
-#ahora haremos una exploración rapida de las variables
+#ahora haremos una exploración rápida de las variables
 EXP= sv.analyze(BDD)
 EXP.show_notebook()
 
 # crear dataset para Cantidad de defunciones por Sexo y por año
 
-BASE_A = BDD.groupby(['Sexo','año'])[['N°']].count().reset_index()
+BASE_A = BDD.groupby(['Sexo','año'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_A = px.bar(BASE_A, x = 'año', y ='N°', color ='Sexo', barmode = 'group')
+fig_A = px.bar(BASE_A, x = 'año', y ='Fecha de Defunción', color ='Sexo', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_A.update_layout(
@@ -663,10 +732,10 @@ fig_A.show()
 
 # crear dataset para Cantidad de defunciones por Municipio y por año
 
-BASE_B = BDD.groupby(['Municipio defunción','año'])[['N°']].count().reset_index()
+BASE_B = BDD.groupby(['Municipio defunción','año'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_B = px.bar(BASE_B, x = 'año', y ='N°', color ='Municipio defunción', barmode = 'group')
+fig_B = px.bar(BASE_B, x = 'año', y ='Fecha de Defunción', color ='Municipio defunción', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_B.update_layout(
@@ -688,16 +757,16 @@ mapa = folium.Map(location=[BDD['latitud'].mean(), BDD['longitud'].mean()], zoom
 
 for index, row in BDD.iterrows():
     folium.Marker([row['latitud'], row['longitud']]).add_to(mapa)
-    
+
 from IPython.display import IFrame
 display(mapa)
 
 # crear dataset para Cantidad de defunciones por la Probable manera de muerte y por año
 
-BASE_C = BDD.groupby(['Probable manera de muerte','año'])[['N°']].count().reset_index()
+BASE_C = BDD.groupby(['Probable manera de muerte','año'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_C = px.bar(BASE_C, x = 'año', y ='N°', color ='Probable manera de muerte', barmode = 'group')
+fig_C = px.bar(BASE_C, x = 'año', y ='Fecha de Defunción', color ='Probable manera de muerte', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_C.update_layout(
@@ -709,13 +778,12 @@ fig_C.update_layout(
 
 fig_C.show()
 
-
 # crear dataset para Cantidad de defunciones por Edad y por año
 
-BASE_D = BDD.groupby(['Edad','año'])[['N°']].count().reset_index()
+BASE_D = BDD.groupby(['Edad','año'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_D = px.bar(BASE_D, x = 'año', y ='N°', color ='Edad', barmode = 'group')
+fig_D = px.bar(BASE_D, x = 'año', y ='Fecha de Defunción', color ='Edad', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_D.update_layout(
@@ -727,13 +795,12 @@ fig_D.update_layout(
 
 fig_D.show()
 
+# crear dataset para Cantidad de defunciones por Edad y por año
 
-# crear dataset para Cantidad de defunciones por Estado civil y por Nivel educativo
-
-BASE_E = BDD.groupby(['Nivel educativo','Estado civil'])[['N°']].count().reset_index()
+BASE_E = BDD.groupby(['Nivel educativo','Estado civil'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_E = px.bar(BASE_E, x = 'Estado civil', y ='N°', color ='Nivel educativo', barmode = 'group')
+fig_E = px.bar(BASE_E, x = 'Estado civil', y ='Fecha de Defunción', color ='Nivel educativo', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_E.update_layout(
@@ -747,10 +814,10 @@ fig_E.show()
 
 # crear dataset para Cantidad de defunciones por mes y por Probable manera de muert
 
-BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['N°']].count().reset_index()
+BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_F = px.bar(BASE_F, x = 'Probable manera de muerte', y ='N°', color ='mes', barmode = 'group')
+fig_F = px.bar(BASE_F, x = 'Probable manera de muerte', y ='Fecha de Defunción', color ='mes', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_F.update_layout(
@@ -764,10 +831,10 @@ fig_F.show()
 
 # crear dataset para Cantidad de defunciones porEdad y por Probable manera de muert
 
-BASE_G = BDD.groupby(['Edad','Probable manera de muerte'])[['N°']].count().reset_index()
+BASE_G = BDD.groupby(['Edad','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_G = px.bar(BASE_G, x = 'Probable manera de muerte', y ='N°', color ='Edad', barmode = 'group')
+fig_G = px.bar(BASE_G, x = 'Probable manera de muerte', y ='Fecha de Defunción', color ='Edad', barmode = 'group')
 
 # agregar detalles a la gráfica
 fig_G.update_layout(
@@ -783,10 +850,10 @@ fig_G.show()
 # crear dataset para MUERTE NATURAL
 
 base_H = BDD[BDD['Probable manera de muerte'].isin(['NATURAL (ENFERMEDAD)'])]
-base_H = base_H.groupby(['Probable manera de muerte','Entidad administradora de salud'])[['N°']].count().reset_index()
+base_H = base_H.groupby(['Probable manera de muerte','Entidad administradora de salud'])[['Fecha de Defunción']].count().reset_index()
 
 # crear gráfica
-fig_H = px.bar(base_H, x='Entidad administradora de salud', y='N°', color ='Probable manera de muerte', barmode ='group', title ='<b>Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"<b>')
+fig_H = px.bar(base_H, x='Entidad administradora de salud', y='Fecha de Defunción', color ='Probable manera de muerte', barmode ='group', title ='<b>Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"<b>')
 
 # agregar detalles a la gráfica
 fig_H.update_layout(
@@ -797,9 +864,11 @@ fig_H.update_layout(
 
 fig_H.show()
 
-###########DEJAMOS HASTA AQUÍ LA EXPLORACIÓN DE LOS DATOS###########
-#Aplicación de Algoritmo K-means
-#Creación de dataset
+"""#Aplicación de Algoritmo K-means
+
+##Creación de dataset
+"""
+
 #Para poder continuar, debemos ajustar la base y sus variables, pasándolas a númericas
 
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
@@ -807,12 +876,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 # Separar variables numéricas y categóricas (Esto es importante para poder aplicar diferentes transformaciones a cada tipo de variable)
-numeric_features = ['Edad', 'longitud', 'latitud', 'año', 'N°']
-categorical_features = ['Departamento defunción', 'Municipio defunción', 'Área defunción',
-                        'Sitio defunción', 'Otro sitio de defunción', 'Nombre institución de defunción', 'Tipo de defunción',
-                        'Fecha de Defunción', 'Sexo', 'Estado civil', 'Nivel educativo', 'Ocupación específica', 'Cultura, pueblo, rasgos físicos',
-                        'País de residencia', 'Departamento de residencia', 'Municipio de residencia', 'Area de residencia', 'Barrio de fallecido',
-                        'Vereda del fallecido', 'Seguridad social', 'Entidad administradora de salud', 'Probable manera de muerte',
+numeric_features = ['Edad', 'año', 'Nivel educación', 'Nivel compromiso civil', 'Nivel SS']
+categorical_features = ['Municipio defunción', 'Área defunción',
+                        'Sitio defunción','Nombre institución de defunción', 'Tipo de defunción',
+                        'Fecha de Defunción', 'Sexo','Ocupación específica', 'Cultura, pueblo, rasgos físicos',
+                        'Municipio de residencia', 'Area de residencia', 'Barrio de fallecido',
+                        'Vereda del fallecido','Entidad administradora de salud', 'Probable manera de muerte',
                         'mes', 'Geolocalización', 'OCUPACION']
 
 # Crear transformador de columnas (Para las variables numéricas, se aplica una estandarización ( StandardScaler), que escala las características de manera que tengan una media de 0 y una desviación estándar de 1.
@@ -848,7 +917,6 @@ synthetic_data, true_labels = make_blobs(n_samples=n_samples,
                                          cluster_std=cluster_std,
                                          random_state=42)
 
-
 # Extraer las características de la base de datos en un arreglo NumPy
 features = synthetic_data
 
@@ -860,7 +928,7 @@ features[:5]
 #Esto permite ver una muestra inicial de las etiquetas reales asociadas a las primeras muestras del conjunto de datos.
 true_labels[:5]
 
-##Preprocesamiento de los datos
+"""##Preprocesamiento de los datos"""
 
 from sklearn.preprocessing import StandardScaler
 from scipy.sparse import csr_matrix
@@ -877,7 +945,7 @@ scaled_features = scaler.fit_transform(features)
 #obtener las primeras cinco filas de un conjunto de datos que ha sido escalado. Esto mostrará una muestra de cómo se ven las primeras cinco muestras después de aplicar la escalada
 scaled_features[:5]
 
-Algoritmo K-means
+"""##Algoritmo K-means"""
 
 # Creación de modelo de Kmeans
 kmeans = KMeans(init="random",
@@ -906,7 +974,7 @@ label = kmeans.fit_predict(scaled_features)
 
 print(label)
 
-#Obtener valores unicos de cluster   (AJUSTAR: Para solucionar este problema, asegúrese de que scaled_featuresy label estén
+#Obtener valores unicos de cluster
 # definidos correctamente y que estén en un formato que pueda ser indexado de esta manera.)
 
 u_labels = np.unique(label)
@@ -917,9 +985,10 @@ for i in u_labels:
 plt.legend()
 plt.show()
 
-Elección del número apropiado de clústeres
+"""##Elección del número apropiado de clústeres
 
-#Método del codo
+###Método del codo
+"""
 
 # Argumentos del algoritmo
 kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
@@ -946,7 +1015,7 @@ kl = KneeLocator(range(1, 11),
 
 kl.elbow
 
-#Coeficiente de silueta
+"""###Coeficiente de silueta"""
 
 # Lista contiene los coeficientes de silueta para cada k
 silhouette_coefficients = []
@@ -965,6 +1034,58 @@ plt.xlabel("Number of Clusters")
 plt.ylabel("Silhouette Coefficient")
 plt.show()
 
+"""#Aplicación de algoritmo Hierarchical Clustering"""
+
+BDD.head()
+
+# Separación de caracteristicas
+X = BDD.iloc[:,24:27]
+print(X.shape)
+X.head()
+
+"""##Uso del dendrograma para encontrar el número óptimo de clusters"""
+
+from scipy.cluster.hierarchy import dendrogram, linkage
+import scipy.cluster.hierarchy as sch
+
+# Función de vinculación para agrupar datos según similud
+Z = linkage(X, method='ward', metric='euclidean')
+Z[:5]
+
+dendrogram = sch.dendrogram(sch.linkage(X, method = 'ward'))
+plt.title('Dendrogram')
+plt.xlabel('Customers')
+plt.ylabel('Euclidean distances')
+plt.show()
+
+# Dibujo del dendograma
+labelList = list(BDD['Municipio defunción'])
+
+plt.figure(figsize=(13, 12))
+dendrogram(
+    Z,
+    orientation='right',
+    labels=labelList,
+    distance_sort='descending',
+    show_leaf_counts=False,
+    leaf_font_size=16
+)
+plt.show()
+
+"""##Entrenamiento del modelo de agrupación jerárquica en el conjunto de datos"""
+
+from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters = 2, metric = 'euclidean', linkage = 'ward')
+
+y_hc = hc.fit_predict(X)
+
+print(hc.labels_)
+
+"""##Incorporando los clusters al dataframe original"""
+
+BDD['cluster'] = y_hc
+BDD.head()
 
 
 
