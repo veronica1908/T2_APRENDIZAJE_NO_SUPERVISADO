@@ -1005,12 +1005,10 @@ fig,axs=plt.subplots(ncols=3,nrows=3,figsize=(20,20))
 for idx,i in enumerate(BDD2_out.columns):
     sns.boxplot(y=BDD2_out[i],ax=axs[box_locs.iloc[idx,0]][box_locs.iloc[idx,1]])
 
-# Tratamos las variables que muestran valores atípicos de acuerdo con los gráficos.
-outs_idx=[BDD2_out[BDD2_out['Probable manera de muerte'] > 2]['Probable manera de muerte'].index.astype('int'),
-          BDD2_out[BDD2_out['Seguridad social'] < 2]['Seguridad social'].index.astype('int'),
-          BDD2_out[BDD2_out['Nivel educativo'] > 5]['Nivel educativo'].index.astype('int'),
+# Tratamos las variables que muestran valores atípicos de acuerdo con los gráficos y cuyos valores no afectarían directamente las categorías.
+outs_idx=[BDD2_out[BDD2_out['Nivel educativo'] < 1]['Nivel educativo'].index.astype('int'),
           BDD2_out[BDD2_out['año'] < 2021]['año'].index.astype('int'),
-          BDD2_out[BDD2_out['Edad'] < 20]['Edad'].index.astype('int')]
+          BDD2_out[BDD2_out['Edad'] < 15]['Edad'].index.astype('int')]
 
 # Seleccionar los únicos y ordenarlos:
 outs_idx=pd.Series(sorted(np.concatenate(outs_idx))).unique()
@@ -1022,7 +1020,7 @@ BDD2_out.reset_index(drop=True,inplace=True) # 101174 rows left
 #Verificamos las dimensiones de la base antes de tratar los valores atípicos
 BDD2.shape
 
-#Verificamos las dimensiones después de tratar los valores atípicos, salieron 342 características
+#Verificamos las dimensiones después de tratar los valores atípicos
 BDD2_out.shape
 
 """##Reducción de la dimensionalidad"""
