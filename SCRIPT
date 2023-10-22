@@ -1045,6 +1045,7 @@ bar = sns.barplot(x = ['PC ' + str(i) for i in range(1)],
 plt.show()
 
 PCA_variance
+##Este componente explica el 94,3% de la varianza
 
 #Por último, transforme "BDD2" de 9 columnas X_pca
 X_pca = pca.fit_transform(BDD2_out)
@@ -1071,23 +1072,32 @@ plt.ylabel("Inertia Value", size=10)
 plt.title("Different Inertia Values for Different Number of Clusters", size=12)
 plt.show()
 
-# Seleccion automatica del numero k
+# Selección automatica del numero k
 kl = KneeLocator(range(1, 11),
                  inertia_list, curve="convex",
                  direction="decreasing")
 kl.elbow
 
+#El número de clusters seleccionados es:
+
 kmeans_constants = {"init": "random", "n_init": 100, "max_iter": 500, "random_state": 42}
 
-# --- Modelo K-means ---
-model_kmeans = KMeans(n_clusters = 4, **kmeans_constants)
+# --- Modelo K-means --- para 3 clusters seleccionados anteriormente
+model_kmeans = KMeans(n_clusters = 3, **kmeans_constants)
 model_kmeans.fit(BDD2_out)
 
 # --- Evaluación del modelo kmeans ---
-print(" ### K-MEANS ###")
+print("K-MEANS")
 print('Inertia: ', model_kmeans.inertia_)
 print('Silhouette Score: ', silhouette_score(BDD2_out, model_kmeans.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_kmeans.labels_))
+
+"""**-La baja inercia indica clusters compactos.**
+
+**-La alta puntuación de racimos de silueta indica que están bien definidas.**
+
+**-El alto puntaje Calinski-Harabasz sugiere clusters bien separados.**
+"""
 
 # Predicción de los clusters
 Cluster_1 = model_kmeans.fit_predict(BDD2_out)
@@ -1095,12 +1105,12 @@ Cluster_1
 
 # Vamos a adjuntar 'Cluster_1' como una nueva variable a 'BDD2_out':
 BDD_final = BDD2_out.copy()
-BDD_final['Cluster_1']= Cluster_1
+BDD_final['Cluster_1KM_DE']= Cluster_1
 
 # A partir de ahora, sólo trabajaremos con "BDD_final"
 BDD_final.head()
 
-BDD_final.Cluster_1.unique()
+BDD_final.Cluster_1KM_DE.unique()   ##Agregar etiquetas a los clusters
 
 """##Dataset Reducido"""
 
@@ -1112,192 +1122,200 @@ for i in range(1, 11):
     kmeans.fit(X_pca)
     inertia_list.append(kmeans.inertia_)
 
-"""#OTROS INTENTOS PREVIOS, POR REVISAR Y AJUSTAR"""
-
-#Creación de clusters desde la base procesada
-
-# Obtener el número de muestras y características (n_samples representa el número de muestras (filas), y n_features representa el número de características (columnas).)
-n_samples, n_features = X_processed.shape
-
-# Definir el número de centros (clusters)
-centers = 3 ###ESTO PODEMOS CAMBIARLO
-
-# Definir la desviación estándar (cluster_std)
-cluster_std = 1.0 ###ESTO PODEMOS CAMBIARLO
-
-# Generar el conjunto de datos sintético
-synthetic_data, true_labels = make_blobs(n_samples=n_samples,
-                                         n_features=n_features,
-                                         centers=centers,
-                                         cluster_std=cluster_std,
-                                         random_state=42)
-
-# Extraer las características de la base de datos en un arreglo NumPy
-features = synthetic_data
-
-#Mostrar las cinco primeras filas
-features[:5]
-
-#En resumen, se trata de una matriz dispersa de 5 filas y 1354 columnas con 150 elementos distintos de cero almacenados.
-
-#Esto permite ver una muestra inicial de las etiquetas reales asociadas a las primeras muestras del conjunto de datos.
-true_labels[:5]
-
-"""##Preprocesamiento de los datos"""
-
-from sklearn.preprocessing import StandardScaler
-from scipy.sparse import csr_matrix
-
-# Convertir a un formato compatible con scipy.sparse
-X_sparse = csr_matrix(features)
-
-# Crear un objeto StandardScaler para matrices dispersas
-scaler = StandardScaler(with_mean=False) #no se centran las características en cero
-
-# Aplicar el escalamiento
-scaled_features = scaler.fit_transform(features)
-
-#obtener las primeras cinco filas de un conjunto de datos que ha sido escalado. Esto mostrará una muestra de cómo se ven las primeras cinco muestras después de aplicar la escalada
-scaled_features[:5]
-
-"""#Aplicación de Algoritmo K-means"""
-
-# Creación de modelo de Kmeans
-kmeans = KMeans(init="random",
-                n_clusters=3,
-                n_init=10,
-                max_iter=100,
-                random_state=42)
-
-# Ajuste de algoritmo a caracteristicas escaladas
-kmeans.fit(scaled_features)
-
-# el valor del SSE mas bajo
-print("valor del SSE mas bajo: ", kmeans.inertia_)
-
-# Coordenadas de los centroides
-print(kmeans.cluster_centers_)
-
-# Numero de interaciones necesarias para converger
-print("Numero de iteraciones: ",kmeans.n_iter_)
-
-# Etiqueta de los datos generadas por Kmeans
-kmeans.labels_[:5]
-
-#Predecir valores de etiquetas
-label = kmeans.fit_predict(scaled_features)
-
-print(label)
-
-#Obtener valores unicos de cluster
-# definidos correctamente y que estén en un formato que pueda ser indexado de esta manera.)
-
-u_labels = np.unique(label)
-
-#Diagramar el resultado:
-for i in u_labels:
-    plt.scatter(scaled_features[label == i,0] , scaled_features[label == i,1] , label = i)
-plt.legend()
-plt.show()
-
-"""##Elección del número apropiado de clústeres
-
-###Método del codo
-"""
-
-# Argumentos del algoritmo
-kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
-# Lista que almacena los valores de SSE para cada valor K
-sse = []
-# Ciclo para entrenar algoritmos de kmeans con cada valor de k
-for k in range(1, 11):
-  kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
-  kmeans.fit(scaled_features)
-  sse.append(kmeans.inertia_)
-
-# Visualización de resultados
-plt.style.use("fivethirtyeight")
-plt.plot(range(1, 11), sse)
-plt.xticks(range(1, 11))
-plt.xlabel("Number of Clusters")
-plt.ylabel("SSE")
+# plot the inertia curve
+plt.plot(range(1,11),inertia_list)
+plt.scatter(range(1,11),inertia_list)
+plt.xlabel("Number of Clusters", size=10)
+plt.ylabel("Inertia Value", size=10)
+plt.title("Different Inertia Values for Different Number of Clusters", size=12)
 plt.show()
 
 # Seleccion automatica del numero k
 kl = KneeLocator(range(1, 11),
-                 sse, curve="convex",
+                 inertia_list, curve="convex",
                  direction="decreasing")
+kl.elbow
+##Igualmente el número de cluster es 3
 
+kmeans_constants = {"init": "random", "n_init": 100, "max_iter": 500, "random_state": 42}
+
+# --- Modelo K-means ---
+model_kmeans_pca = KMeans(n_clusters = 3, **kmeans_constants)
+model_kmeans_pca.fit(X_pca)
+
+# --- Evaluación del modelo kmeans ---
+print("K-MEANS")
+print('Inertia: ', model_kmeans_pca.inertia_)
+print('Silhouette Score: ', silhouette_score(X_pca, model_kmeans_pca.labels_))
+print('Calinski harabasz score: ', calinski_harabasz_score(X_pca, model_kmeans_pca.labels_))
+
+"""**Estos resultados indican que el modelo de K-Means ha logrado formar clusters relativamente compactos y bien definidos en el conjunto de datos, mejor en comparación con Dataset Escalado.**"""
+
+# Predicción de los clusters
+Cluster_2 = model_kmeans.fit_predict(X_pca)
+
+BDD_final['Cluster_2KM_DR']= Cluster_2
+
+# A partir de ahora, sólo trabajaremos con "BDD_final"
+BDD_final.head(3)
+
+# 3d scatterplot using matplotlib
+
+fig = plt.figure(figsize = (15,15))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(X_pca[Cluster_2 == 0,0], X_pca[Cluster_2 == 0,0], X_pca[Cluster_2 == 0,0], s=40, color='blue', label="cluster 0")
+ax.scatter(X_pca[Cluster_2 == 1,0], X_pca[Cluster_2 == 1,0], X_pca[Cluster_2 == 1,0], s=40, color='orange', label="cluster 1")
+ax.scatter(X_pca[Cluster_2 == 2,0], X_pca[Cluster_2 == 2,0], X_pca[Cluster_2 == 2,0], s=40, color='green', label="cluster 2")
+ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
+ax.set_zlabel('PC3')
+ax.legend()
+plt.show()
+
+"""#Clustering Algorithm: DBSCAN
+
+##Dataset Original
+"""
+
+from sklearn.neighbors import NearestNeighbors
+
+# --- Selección de hiperparámetros eps ---
+
+# --- Gráfica de distancias K --
+neighbors = NearestNeighbors(n_neighbors = 2)
+neighbors.fit(BDD2_out)
+
+distances, *other = neighbors.kneighbors(BDD2_out)
+distances = distances[:, 1]
+print(distances.shape)
+distances = np.sort(distances, axis = 0)
+distances
+
+plt.style.use('seaborn')
+plt.figure(figsize = (8, 5))
+plt.plot(distances, color = 'red')
+plt.ylabel('Distancia al K vecino más cercano')
+plt.show()
+
+# --- Selección del punto de curvatura máxima ---
+kl = KneeLocator(range(len(distances)), distances, curve = 'convex', direction = 'increasing')
 kl.elbow
 
-"""###Coeficiente de silueta"""
+# --- Epsilon óptimo --
+epsilon = distances[kl.elbow]
+epsilon
 
-# Lista contiene los coeficientes de silueta para cada k
-silhouette_coefficients = []
-# Fíjate que empiezas con 2 grupos para el coeficiente de silueta
-for k in range(2, 11):
-  kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
-  kmeans.fit(scaled_features)
-  score = silhouette_score(scaled_features, kmeans.labels_)
-  silhouette_coefficients.append(score)
+#La distancia en el punto de curvatura máxima
 
-# Visualización de resultados
-plt.style.use("fivethirtyeight")
-plt.plot(range(2, 11), silhouette_coefficients)
-plt.xticks(range(2, 11))
-plt.xlabel("Number of Clusters")
-plt.ylabel("Silhouette Coefficient")
+# --- Selección de hiperparámetros min_sample ---
+silhoutte_coefs = []
+
+for min_points in [8, 10, 15, 20, 30]:
+    model_d = DBSCAN(eps = epsilon, min_samples = min_points)
+    model_d.fit(BDD2_out)
+    silhoutte_coefs.append(silhouette_score(BDD2_out, model_d.labels_))
+
+plt.figure(figsize = (12, 8))
+plt.plot([8, 10, 15, 20, 30], silhoutte_coefs, color = 'r', marker = '^')
+plt.xlabel('Muestras mínimas de cada cluster')
+plt.ylabel('Silhoutte Score')
+plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
-"""#Aplicación de algoritmo Hierarchical Clustering"""
+# --- Modelo DBSCAN ---
+model_db = DBSCAN(eps = epsilon, min_samples = 8, n_jobs=-1)
+model_db.fit(BDD2_out)
 
-BDD.head()
+"""**eps: Esto significa que cualquier punto que esté a una distancia de hasta 4.242640687119285 unidades de otro punto se considera parte del mismo cluster.**
 
-# Separación de caracteristicas
-X = BDD.iloc[:,24:27]
-print(X.shape)
-X.head()
+**min_muestras=8 : El parámetro min_samplesespecifica el número mínimo de muestras que deben estar en la vecindad de un punto para que ese punto sea considerado un "punto central". En este caso, se ha establecido que al menos 8 muestras deben estar dentro de la vecindad de un punto para que ese punto sea considerado un "punto central".**
+"""
 
-"""##Uso del dendrograma para encontrar el número óptimo de clusters"""
+# --- Evaluación del modelo DBSCAN ---
+print("DBSCAN")
+print('Silhouette Score: ', silhouette_score(BDD2_out, model_db.labels_))
+print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_db.labels_))
 
-from scipy.cluster.hierarchy import dendrogram, linkage
-import scipy.cluster.hierarchy as sch
+"""**Se obtuvo un Silhouette Score menor en comparación con K-means cuyo puntaje fue de 0,48 en Dataset Escalado y 0.57 en Dataset reducido. Igualmente Calinski harabasz score es muchísimo menor, ya que para K-means fue de 4858en Dataset Escalado y 6469 en dataset reducido.**"""
 
-# Función de vinculación para agrupar datos según similud
-Z = linkage(X, method='ward', metric='euclidean')
-Z[:5]
+# Predicción de los clusters
+Cluster_3 = model_db.fit_predict(BDD2_out)
 
-dendrogram = sch.dendrogram(sch.linkage(X, method = 'ward'))
-plt.title('Dendrogram')
-plt.xlabel('Customers')
-plt.ylabel('Euclidean distances')
+BDD_final['Cluster_3DB_DO']= Cluster_3
+
+# A partir de ahora, sólo trabajaremos con "df_final"
+BDD_final.head(3)
+
+BDD_final['Cluster_3DB_DO'].value_counts()
+
+"""##Dataset reducido"""
+
+# --- Selección de hiperparámetros eps ---
+
+# --- Gráfica de distancias K --
+neighbors = NearestNeighbors(n_neighbors = 2)
+neighbors.fit(X_pca)
+
+distances, *other = neighbors.kneighbors(X_pca)
+distances = distances[:, 1]
+print(distances.shape)
+distances = np.sort(distances, axis = 0)
+distances
+
+plt.style.use('seaborn')
+plt.figure(figsize = (8, 5))
+plt.plot(distances, color = 'red')
+plt.ylabel('Distancia al K vecino más cercano')
 plt.show()
 
-# Dibujo del dendograma
-labelList = list(BDD['Municipio defunción'])
+# --- Selección del punto de curvatura máxima ---
+kl = KneeLocator(range(len(distances)), distances, curve = 'convex', direction = 'increasing')
+kl.elbow
 
-plt.figure(figsize=(13, 12))
-dendrogram(
-    Z,
-    orientation='right',
-    labels=labelList,
-    distance_sort='descending',
-    show_leaf_counts=False,
-    leaf_font_size=16
-)
+# --- Epsilon óptimo --
+epsilon = distances[kl.elbow]
+epsilon
+
+# --- Selección de hiperparámetros min_sample ---
+silhoutte_coefs = []
+
+for min_points in [8, 10, 15, 20, 30]:
+    model_d = DBSCAN(eps = epsilon, min_samples = min_points)
+    model_d.fit(X_pca)
+    silhoutte_coefs.append(silhouette_score(X_pca, model_d.labels_))
+
+plt.figure(figsize = (12, 8))
+plt.plot([8, 10, 15, 20, 30], silhoutte_coefs, color = 'r', marker = '^')
+plt.xlabel('Muestras mínimas de cada cluster')
+plt.ylabel('Silhoutte Score')
+plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
-"""##Entrenamiento del modelo de agrupación jerárquica en el conjunto de datos"""
+# --- Modelo DBSCAN ---
+model_db_pca = DBSCAN(eps = 0.5, min_samples = 8)
+model_db_pca.fit(X_pca)
 
-from sklearn.cluster import AgglomerativeClustering
+# --- Evaluación del modelo DBSCAN ---
+print("DBSCAN")
+print('Silhouette Score: ', silhouette_score(X_pca, model_db_pca.labels_))
+print('Calinski harabasz score: ', calinski_harabasz_score(X_pca, model_db_pca.labels_))
 
-hc = AgglomerativeClustering(n_clusters = 2, metric = 'euclidean', linkage = 'ward')
+# Predicción de los clusters
+Cluster_4 = model_db_pca.fit_predict(X_pca)
 
-y_hc = hc.fit_predict(X)
+BDD_final['Cluster_4DB_DR']= Cluster_4
 
-print(hc.labels_)
+# A partir de ahora, sólo trabajaremos con "df_final"
+BDD_final.head(3)
 
-"""##Incorporando los clusters al dataframe original"""
+BDD_final['Cluster_4DB_DR'].value_counts()
 
-BDD['cluster'] = y_hc
-BDD.head()
+# 3d scatterplot using matplotlib
+
+fig = plt.figure(figsize=(15, 15))
+ax = fig.add_subplot(111)
+ax.scatter(X_pca[Cluster_4 == 0], [0]*len(X_pca[Cluster_4 == 0]), s=40, color='purple', label="cluster 0")
+ax.scatter(X_pca[Cluster_4 == -1], [0]*len(X_pca[Cluster_4 == -1]), s=40, color='red', label="outliers")
+ax.set_xlabel('PC1')
+ax.legend()
+plt.show()
