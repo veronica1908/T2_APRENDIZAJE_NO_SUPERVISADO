@@ -57,6 +57,20 @@ from sklearn.datasets import make_blobs
 from sklearn.metrics import silhouette_score
 # %matplotlib inline
 
+
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
+!pip install kneed
+from kneed import KneeLocator
+
+from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.mixture import GaussianMixture
+from sklearn.decomposition import PCA, FactorAnalysis
+
+!pip install factor_analyzer
+from factor_analyzer import FactorAnalyzer
+
 #Cargamos la base alojada en GitHub
 BDD = pd.read_csv("https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/main/BASE_SIN_PROCESAR.csv", sep = ',')
 
@@ -184,25 +198,6 @@ BDD['Estado civil'] = BDD['Estado civil'].replace({'ESTABA CASADO(A)': 'CASADO(A
 #Verificamos ajustes
 sorted(BDD['Estado civil'].unique())
 
-#Esta variable puede conmvertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
-#Para lo cual agregaremos la columna "Nivel compromiso civil"
-BDD['Nivel compromiso civil'] = BDD['Estado civil']
-
-#Reajustamos las categorías
-BDD['Nivel compromiso civil'] = BDD['Nivel compromiso civil'].replace({'SIN INFORMACIÓN': '0',
-                                                   'SOLTERO(A)':'1',
-                                                   'UNIÓN LIBRE':'2',
-                                                   'CASADO(A)':'3',
-                                                   'SEPARADO (A)':'4',
-                                                   'VIUDO(A)':'5'})
-
-
-#Convertimos la variable en entero
-BDD['Nivel compromiso civil'] = BDD['Nivel compromiso civil'].astype(int)
-
-#Verificamos ajustes
-sorted(BDD['Nivel compromiso civil'].unique())
-
 #Como la edad es una variable que podría tener gran significancia en esta base de datos, tener datos vacíos no sería útil y llenarlos con la media podría sesgar la información.
 #Considerando que el conjunto de datos es de buenas dimensiones, se decide eliminar las filas con valores nulos en esta variable.
 BDD = BDD.dropna(subset=['Edad'])
@@ -242,31 +237,6 @@ BDD['Nivel educativo'] = BDD['Nivel educativo'].replace({'BASICA PRIMARIA': 'BÁ
 
 #Verificamos ajustes
 sorted(BDD['Nivel educativo'].unique())
-
-#Esta variable puede conmvertirse en una variable de tipo numériuca de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
-#Para lo cual agregaremos la columna "Nivel educación"
-BDD['Nivel educación'] = BDD['Nivel educativo']
-
-#Reajustamos las categorías
-BDD['Nivel educación'] = BDD['Nivel educación'].replace({'SIN INFORMACIÓN': '0',
-                                                   'NINGUNO':'1',
-                                                   'PREESCOLAR':'2',
-                                                   'BÁSICA PRIMARIA':'3',
-                                                   'BÁSICA SECUNDARIA':'4',
-                                                   'MEDIA ACADÉMICA':'5',
-                                                   'MEDIA TÉCNICA':'6',
-                                                   'TÉCNICA PROFESIONAL':'7',
-                                                   'TECNOLÓGICA':'8',
-                                                   'PROFESIONAL':'9',
-                                                   'ESPECIALIZACION':'10',
-                                                   'MAESTRÍA':'11'})
-
-
-#Convertimos la variable en entero
-BDD['Nivel educación'] = BDD['Nivel educación'].astype(int)
-
-#Verificamos ajustes
-sorted(BDD['Nivel educación'].unique())
 
 #Como la columna "Último curso fallecido" tiene 1141 datos vacíos, pero la columna anterior de "Nivel educativo", contiene información similar, se elimina esta columna de la base
 BDD = BDD.drop('Último curso fallecido', axis=1)
@@ -642,25 +612,6 @@ BDD['Seguridad social'].fillna('SIN INFORMACIÓN', inplace=True)
 #Verificamos categorías de la columna
 sorted(BDD['Seguridad social'].unique())
 
-#Esta variable puede conmvertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
-#Para lo cual agregaremos la columna "Nivel SS"
-BDD['Nivel SS'] = BDD['Seguridad social']
-
-#Reajustamos las categorías
-BDD['Nivel SS'] = BDD['Nivel SS'].replace({'SIN INFORMACIÓN': '0',
-                                                   'NO ASEGURADO':'1',
-                                                   'EXCEPCIÓN':'2',
-                                                   'SUBSIDIADO':'3',
-                                                   'CONTRIBUTIVO':'4',
-                                                   'ESPECIAL':'5'})
-
-
-#Convertimos la variable en entero
-BDD['Nivel SS'] = BDD['Nivel SS'].astype(int)
-
-#Verificamos ajustes
-sorted(BDD['Nivel SS'].unique())
-
 #Verificamos categorías de la columna "Entidad administradora de salud" que no tiene datos nulos
 sorted(BDD['Entidad administradora de salud'].unique())
 
@@ -711,6 +662,19 @@ BDD['Probable manera de muerte'].fillna('SIN INFORMACIÓN', inplace=True)
 #Verificamos categorías de la columna
 sorted(BDD['Probable manera de muerte'].unique())
 #No hay más ajustes para esta columna
+
+#Se observa la categoría "NO NATURAL" y esta podría ser más bien un agrupador de las categorías 'ACCIDENTE',  'HOMICIDIO',  'SUICIDIO (AUTOLESIÓN)',
+#Por lo tanto verificamos si contiene muchas características, de lo contrario procedería a eliminarse de la base.
+BDD['Probable manera de muerte'].value_counts()
+
+#Como no tiene demasiadas características y no puede asociarse a otra categoría, se elimina de la base
+BDD = BDD[BDD['Probable manera de muerte'] != 'NO NATURAL']
+
+#Además, agrupamos las categorías: PENDIENTE DE INVESTIGACIÓN Y "SIN INFORMACIÓN"
+BDD['Probable manera de muerte'] = BDD['Probable manera de muerte'].replace({'PENDIENTE DE INVESTIGACIÓN':'SIN INFORMACIÓN'})
+
+#Verificamos
+BDD['Probable manera de muerte'].value_counts()
 
 #Como las variables "longitud", "latitud" y localización pueden aportarnos información espacial visual de los datos, se conservan y se reemplazan los datos nulos con cero (894 datos nulos cada uno)
 BDD['longitud'].fillna(0, inplace=True)
@@ -812,7 +776,7 @@ fig_E.update_layout(
 
 fig_E.show()
 
-# crear dataset para Cantidad de defunciones por mes y por Probable manera de muert
+# crear dataset para Cantidad de defunciones por mes y por Probable manera de muerte
 
 BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
 
@@ -827,9 +791,14 @@ fig_F.update_layout(
     template = 'simple_white',
     title_x = 0.5)
 
-"""la mayoría de meses domina la mkuerte por enfermedad, en todos está presente  la muerte por homicidio y una baja proporción por accidentes."""
+"""la mayoría de meses domina la muerte por enfermedad, en todos está presente  la muerte por homicidio y una baja proporción por accidentes.
 
-# crear dataset para Cantidad de defunciones porEdad y por Probable manera de muert
+> Bloque con sangría
+
+
+"""
+
+# crear dataset para Cantidad de defunciones porEdad y por Probable manera de muerte
 
 BASE_G = BDD.groupby(['Edad','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
 
@@ -879,32 +848,193 @@ sns.heatmap(c, annot=True)
 ##Creación de dataset
 """
 
-#Para poder continuar, debemos ajustar la base y sus variables, utilizando las variables numéricas y ajustando las categóricas.
+## Vamos a trabajar con las siguientes variables de la base de datos
+## La primera línea es de variables categóricas y la segunda línea de las variables numéricas
 
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+VarNuevas=['mes','Área defunción','Sexo', 'Probable manera de muerte', 'Seguridad social', 'Estado civil', 'Nivel educativo',
+           'Edad', 'año']
 
-# Separar variables numéricas y categóricas (Esto es importante para poder aplicar diferentes transformaciones a cada tipo de variable)
-numeric_features = ['Edad', 'año', 'Nivel educación', 'Nivel compromiso civil', 'Nivel SS']  ## Las variables 'Nivel educación', 'Nivel compromiso civil'y 'Nivel SS' fueron codificadas en Ajuste de las variables de la base de datos
-categorical_features = ['Municipio defunción', 'Área defunción','Sexo','Barrio de fallecido','Entidad administradora de salud', 'Probable manera de muerte','mes']
+#Generamos entonces una copia de estas variables en una nueva base de datos:
+BDD1 = BDD[VarNuevas].copy()
 
-# Crear transformador de columnas (Para las variables numéricas, se aplica una estandarización ( StandardScaler), que escala las características de manera que tengan una media de 0 y una desviación estándar de 1.
-#Para las variables categóricas, se aplica un codificador one-hot ( OneHotEncoder), que convierte las variables categóricas en una representación binaria.)
+#Visualizamos la nueva base
+BDD1.head()
 
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', StandardScaler(), numeric_features),
-        ('cat', OneHotEncoder(), categorical_features)])
+"""#Preprocesamiento de los datos
 
-# Crear un pipeline
-pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
+##Metodología 1: Codificación de las categorías de las variables
+"""
 
-# Aplicar el preprocesamiento a tus datos
+# Metodología 1 - Codificación de las categorías de las variables
+#Hacemos una copia de la base de datos
+BDD2 = BDD1.copy()
 
-BDD2 = BDD.copy()
-X_processed = pipeline.fit_transform(BDD2)
-#El resultado ( X_processed) es la base de datos con las transformaciones aplicadas.
+#Variable Mes: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenarse por temporalidad
+#Para lo cual convertiremos en la columna "MesN"
+
+BDD2['mes'] = BDD1['mes'].map({'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12})
+
+#Variable Área de defunción: La codificaremos de mayor a menor cantidad de población.
+BDD2['Área defunción'] = BDD1['Área defunción'].map({'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3})
+
+#Variable sexo: se codifica similar a si fuera dummies
+BDD2['Sexo'] = BDD1['Sexo'].map({'FEMENINO':0, 'MASCULINO':1})
+
+#Variable Probable manera de muerte: Se codificará con asignación personalizada de lo que podría considerarse menos grave hacia lo más grave de acuerdo con una consulta sobre criminalística en Colombia.
+
+BDD2['Probable manera de muerte'] = BDD1['Probable manera de muerte'].map({'SIN INFORMACIÓN': 0,
+                                                   'NATURAL (ENFERMEDAD)':1,
+                                                   'ACCIDENTE':2,
+                                                   'SUICIDIO (AUTOLESIÓN)':3,
+                                                   'HOMICIDIO':4})
+
+#Variable Seguridad social: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
+#Para lo cual la convertiremos en la columna "Nivel SS"
+
+BDD2['Seguridad social'] = BDD1['Seguridad social'].map({'SIN INFORMACIÓN': 0,
+                                                   'NO ASEGURADO':1,
+                                                   'EXCEPCIÓN':2,
+                                                   'SUBSIDIADO':3,
+                                                   'CONTRIBUTIVO':4,
+                                                   'ESPECIAL':5})
+
+#Variable Estado civil: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
+#Para lo cual convertimos en la columna "Nivel compromiso civil"
+
+BDD2['Estado civil'] = BDD1['Estado civil'].map({'SIN INFORMACIÓN': 0,
+                                                           'SOLTERO(A)':1,
+                                                           'UNIÓN LIBRE':2,
+                                                           'CASADO(A)':3,
+                                                           'SEPARADO (A)':4,
+                                                           'VIUDO(A)':5})
+
+#Variable Nivel educativo: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
+#Para lo cual convertiremos en la columna "Nivel educación"
+
+BDD2['Nivel educativo'] = BDD1['Nivel educativo'].map({'SIN INFORMACIÓN': 0,
+                                                       'NINGUNO':1,
+                                                       'PREESCOLAR':2,
+                                                       'BÁSICA PRIMARIA':3,
+                                                       'BÁSICA SECUNDARIA':4,
+                                                       'MEDIA ACADÉMICA':5,
+                                                       'MEDIA TÉCNICA':6,
+                                                       'TÉCNICA PROFESIONAL':7,
+                                                       'TECNOLÓGICA':8,
+                                                       'PROFESIONAL':9,
+                                                       'ESPECIALIZACION':10,
+                                                       'MAESTRÍA':11})
+
+BDD2.head()
+
+"""##Metodología 2. POR FRECUENCIAS"""
+
+#Metodología 2. POR FRECUENCIAS
+#Hacemos una copia de la base de datos
+BDD3 = BDD1.copy()
+
+#UTILIZAMOS LA MISMA CODIFICACIÓN QUE EN LA METODOLOGÍA ANTERIOR, EXCEPTO PARA LA VARIABLE "Probable manera de muerte", a la cual le calcularemos frecuencia
+
+#Variable Mes: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenarse por temporalidad
+#Para lo cual convertiremos en la columna "MesN"
+
+BDD3['mes'] = BDD1['mes'].map({'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12})
+
+#Variable Área de defunción: La codificaremos de mayor a menor cantidad de población.
+BDD3['Área defunción'] = BDD1['Área defunción'].map({'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3})
+
+#Variable sexo: se codifica similar a si fuera dummies
+BDD3['Sexo'] = BDD1['Sexo'].map({'FEMENINO':0, 'MASCULINO':1})
+
+#Variable Seguridad social: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
+#Para lo cual la convertiremos en la columna "Nivel SS"
+
+BDD3['Seguridad social'] = BDD1['Seguridad social'].map({'SIN INFORMACIÓN': 0,
+                                                   'NO ASEGURADO':1,
+                                                   'EXCEPCIÓN':2,
+                                                   'SUBSIDIADO':3,
+                                                   'CONTRIBUTIVO':4,
+                                                   'ESPECIAL':5})
+
+#Variable Estado civil: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
+#Para lo cual convertimos en la columna "Nivel compromiso civil"
+
+BDD3['Estado civil'] = BDD1['Estado civil'].map({'SIN INFORMACIÓN': 0,
+                                                           'SOLTERO(A)':1,
+                                                           'UNIÓN LIBRE':2,
+                                                           'CASADO(A)':3,
+                                                           'SEPARADO (A)':4,
+                                                           'VIUDO(A)':5})
+
+#Variable Nivel educativo: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
+#Para lo cual convertiremos en la columna "Nivel educación"
+
+BDD3['Nivel educativo'] = BDD1['Nivel educativo'].map({'SIN INFORMACIÓN': 0,
+                                                       'NINGUNO':1,
+                                                       'PREESCOLAR':2,
+                                                       'BÁSICA PRIMARIA':3,
+                                                       'BÁSICA SECUNDARIA':4,
+                                                       'MEDIA ACADÉMICA':5,
+                                                       'MEDIA TÉCNICA':6,
+                                                       'TÉCNICA PROFESIONAL':7,
+                                                       'TECNOLÓGICA':8,
+                                                       'PROFESIONAL':9,
+                                                       'ESPECIALIZACION':10,
+                                                       'MAESTRÍA':11})
+
+# Calcular la frecuencia de cada categoría Probable manera de muerte
+frecuencia = BDD3['Probable manera de muerte'].value_counts(normalize=True)
+
+# Aplicar la codificación de frecuencia
+BDD3['Probable manera de muerte'] = BDD3['Probable manera de muerte'].map(frecuencia)
+
+BDD3.head()
+
+"""##Verificar las nuevas variables y ajustarlas"""
+
+#Verificamos la dimensionalidad ede la base con la metodología 1, con la cual seguiremos trabajando
+BDD2.shape
+
+#Verificamos graficamente para analizar
+
+BDD2.hist(figsize=(14,10), bins=15)
+plt.tight_layout()
+plt.show()
+
+# Escalamos las variables numéricas
+train_cols = BDD2[['Edad', 'año']]
+
+scaler = StandardScaler()
+scaled_BDD2 = pd.DataFrame(scaler.fit_transform(train_cols), columns = train_cols.columns)
+scaled_BDD2.head(3)
+
+# Tratamiento de valores atípicos
+BDD2_out= BDD2.copy()
+
+# Sentar las bases de un "mosaico boxplot de 3x3 (para cubrir 9 variables)":
+box_locs=pd.DataFrame(
+{"vert":sorted(list(range(0,3))*3),
+ "horiz":list(range(0,3))*3}
+)
+
+fig,axs=plt.subplots(ncols=3,nrows=3,figsize=(20,20))
+
+for idx,i in enumerate(BDD2_out.columns):
+    sns.boxplot(y=BDD2_out[i],ax=axs[box_locs.iloc[idx,0]][box_locs.iloc[idx,1]])
+
+"""#Clustering Algorithm: K-Means
+
+##Dataset Escalado
+"""
+
+# Número optimo de K
+inertia_list = []
+
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=3)
+    kmeans.fit(BDD2_out)
+    inertia_list.append(kmeans.inertia_)
+
+"""#OTROS INTENTOS PREVIOS, POR REVISAR Y AJUSTAR"""
 
 #Creación de clusters desde la base procesada
 
