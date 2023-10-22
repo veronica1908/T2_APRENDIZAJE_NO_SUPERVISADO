@@ -7,69 +7,51 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-!pip install pandas numpy sweetviz seaborn matplotlib scikit-learn
+#Instalación de complementos
 !pip install kneed
-
-#Instalación de complemento
 !pip install sweetviz
+!pip install factor_analyzer
+!pip install pandas numpy sweetviz seaborn matplotlib scikit-learn
 
-#importar librerias
-#importar librerias
-import pandas as pd
+# %matplotlib inline
+
+#importar librerías
 import numpy as np
-import sweetviz as sv
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotly.express as px
 import kneed as kd
+import pandas as pd
+import seaborn as sns
+import sweetviz as sv
+import plotly.express as px
+import matplotlib.pyplot as plt
 
-from sklearn.linear_model import LinearRegression, Ridge, RidgeCV, Lasso
+from sklearn import tree
+from sklearn import metrics
+from sklearn import datasets
+from kneed import KneeLocator
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.cluster import KMeans, DBSCAN
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.linear_model import LogisticRegression
+from sklearn.mixture import GaussianMixture
+from factor_analyzer import FactorAnalyzer
+from sklearn.datasets import make_blobs
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.feature_selection import RFE
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import silhouette_score, calinski_harabasz_score
 from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression, Ridge, RidgeCV, Lasso
+from sklearn.decomposition import PCA, FactorAnalysis
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
+from scipy.spatial.distance import cdist
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import ShuffleSplit
-from sklearn import datasets
-import numpy as np
-import pandas as pd
-from sklearn import tree
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
-
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-from kneed import KneeLocator
-from sklearn.datasets import make_blobs
-from sklearn.metrics import silhouette_score
-# %matplotlib inline
-
-
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import silhouette_score, calinski_harabasz_score
-!pip install kneed
-from kneed import KneeLocator
-
-from scipy.spatial.distance import cdist
-from sklearn.cluster import KMeans, DBSCAN
-from sklearn.mixture import GaussianMixture
-from sklearn.decomposition import PCA, FactorAnalysis
-
-!pip install factor_analyzer
-from factor_analyzer import FactorAnalyzer
+from sklearn.feature_selection import RFE
 
 #Cargamos la base alojada en GitHub
 BDD = pd.read_csv("https://raw.githubusercontent.com/veronica1908/T2_APRENDIZAJE_NO_SUPERVISADO/main/BASE_SIN_PROCESAR.csv", sep = ',')
@@ -1007,6 +989,8 @@ scaler = StandardScaler()
 scaled_BDD2 = pd.DataFrame(scaler.fit_transform(train_cols), columns = train_cols.columns)
 scaled_BDD2.head(3)
 
+"""### Tratamiento de valores atípicos"""
+
 # Tratamiento de valores atípicos
 BDD2_out= BDD2.copy()
 
@@ -1021,6 +1005,53 @@ fig,axs=plt.subplots(ncols=3,nrows=3,figsize=(20,20))
 for idx,i in enumerate(BDD2_out.columns):
     sns.boxplot(y=BDD2_out[i],ax=axs[box_locs.iloc[idx,0]][box_locs.iloc[idx,1]])
 
+# Tratamos las variables que muestran valores atípicos de acuerdo con los gráficos.
+outs_idx=[BDD2_out[BDD2_out['Probable manera de muerte'] > 2]['Probable manera de muerte'].index.astype('int'),
+          BDD2_out[BDD2_out['Seguridad social'] < 2]['Seguridad social'].index.astype('int'),
+          BDD2_out[BDD2_out['Nivel educativo'] > 5]['Nivel educativo'].index.astype('int'),
+          BDD2_out[BDD2_out['año'] < 2021]['año'].index.astype('int'),
+          BDD2_out[BDD2_out['Edad'] < 20]['Edad'].index.astype('int')]
+
+# Seleccionar los únicos y ordenarlos:
+outs_idx=pd.Series(sorted(np.concatenate(outs_idx))).unique()
+
+# Eliminar estas filas de 'BDD2_out' y 'BDD2, y RESTABLECER LOS ÍNDICES después:
+BDD2_out.drop(index=outs_idx,inplace=True)
+BDD2_out.reset_index(drop=True,inplace=True) # 101174 rows left
+
+#Verificamos las dimensiones de la base antes de tratar los valores atípicos
+BDD2.shape
+
+#Verificamos las dimensiones después de tratar los valores atípicos, salieron 342 características
+BDD2_out.shape
+
+"""##Reducción de la dimensionalidad"""
+
+#Cree un dataset reducido que proporcione el 100% de la varianza de entrada que debe explicarse
+pca = PCA(n_components=1).fit(BDD2_out)
+
+#Veamos cuántas componentes ha conservado PCA:
+pca.n_components_
+
+# --- Varianza explicada ---
+PCA_variance = pd.DataFrame({'Varianza explicada (%)':
+                             pca.explained_variance_ratio_*100})
+
+fig, ax = plt.subplots(1, 1, figsize = (7, 5))
+
+bar = sns.barplot(x = ['PC ' + str(i) for i in range(1)],
+                  y = PCA_variance['Varianza explicada (%)'],
+                  linewidth = 1.5, edgecolor = 'k', color = '#4bafb8',
+                  alpha = 0.8)
+
+plt.show()
+
+PCA_variance
+
+#Por último, transforme "BDD2" de 9 columnas X_pca
+X_pca = pca.fit_transform(BDD2_out)
+X_pca
+
 """#Clustering Algorithm: K-Means
 
 ##Dataset Escalado
@@ -1032,6 +1063,55 @@ inertia_list = []
 for i in range(1, 11):
     kmeans = KMeans(n_clusters=i, init='k-means++', random_state=3)
     kmeans.fit(BDD2_out)
+    inertia_list.append(kmeans.inertia_)
+
+# plot the inertia curve
+plt.plot(range(1,11),inertia_list)
+plt.scatter(range(1,11),inertia_list)
+plt.xlabel("Number of Clusters", size=10)
+plt.ylabel("Inertia Value", size=10)
+plt.title("Different Inertia Values for Different Number of Clusters", size=12)
+plt.show()
+
+# Seleccion automatica del numero k
+kl = KneeLocator(range(1, 11),
+                 inertia_list, curve="convex",
+                 direction="decreasing")
+kl.elbow
+
+kmeans_constants = {"init": "random", "n_init": 100, "max_iter": 500, "random_state": 42}
+
+# --- Modelo K-means ---
+model_kmeans = KMeans(n_clusters = 4, **kmeans_constants)
+model_kmeans.fit(BDD2_out)
+
+# --- Evaluación del modelo kmeans ---
+print(" ### K-MEANS ###")
+print('Inertia: ', model_kmeans.inertia_)
+print('Silhouette Score: ', silhouette_score(BDD2_out, model_kmeans.labels_))
+print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_kmeans.labels_))
+
+# Predicción de los clusters
+Cluster_1 = model_kmeans.fit_predict(BDD2_out)
+Cluster_1
+
+# Vamos a adjuntar 'Cluster_1' como una nueva variable a 'BDD2_out':
+BDD_final = BDD2_out.copy()
+BDD_final['Cluster_1']= Cluster_1
+
+# A partir de ahora, sólo trabajaremos con "BDD_final"
+BDD_final.head()
+
+BDD_final.Cluster_1.unique()
+
+"""##Dataset Reducido"""
+
+# Número optimo de K
+inertia_list = []
+
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=3)
+    kmeans.fit(X_pca)
     inertia_list.append(kmeans.inertia_)
 
 """#OTROS INTENTOS PREVIOS, POR REVISAR Y AJUSTAR"""
