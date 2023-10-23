@@ -1193,7 +1193,7 @@ distances
 
 plt.style.use('seaborn')
 plt.figure(figsize = (8, 5))
-plt.plot(distances, color = 'red')
+plt.plot(distances, color = 'purple')
 plt.ylabel('Distancia al K vecino más cercano')
 plt.show()
 
@@ -1210,25 +1210,25 @@ epsilon
 # --- Selección de hiperparámetros min_sample ---
 silhoutte_coefs = []
 
-for min_points in [8, 10, 15, 20, 30]:
-    model_d = DBSCAN(eps = epsilon, min_samples = min_points)
+for min_points in range(5, 31):
+    model_d = DBSCAN(eps=epsilon, min_samples=min_points)
     model_d.fit(BDD2_out)
     silhoutte_coefs.append(silhouette_score(BDD2_out, model_d.labels_))
 
-plt.figure(figsize = (12, 8))
-plt.plot([8, 10, 15, 20, 30], silhoutte_coefs, color = 'r', marker = '^')
+plt.figure(figsize=(12, 8))
+plt.plot(range(5, 31), silhoutte_coefs, color='r', marker='^')
 plt.xlabel('Muestras mínimas de cada cluster')
 plt.ylabel('Silhoutte Score')
 plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
 # --- Modelo DBSCAN ---
-model_db = DBSCAN(eps = epsilon, min_samples = 8, n_jobs=-1)
+model_db = DBSCAN(eps = epsilon, min_samples = 30, n_jobs=-1)
 model_db.fit(BDD2_out)
 
 """**eps: Esto significa que cualquier punto que esté a una distancia de hasta 4.242640687119285 unidades de otro punto se considera parte del mismo cluster.**
 
-**min_muestras=8 : El parámetro min_samplesespecifica el número mínimo de muestras que deben estar en la vecindad de un punto para que ese punto sea considerado un "punto central". En este caso, se ha establecido que al menos 8 muestras deben estar dentro de la vecindad de un punto para que ese punto sea considerado un "punto central".**
+**min_muestras=30 : El parámetro min_samples especifica el número mínimo de muestras que deben estar en la vecindad de un punto para que ese punto sea considerado un "punto central". En este caso, se ha establecido que al menos 30 muestras deben estar dentro de la vecindad de un punto para que ese punto sea considerado un "punto central".**
 """
 
 # --- Evaluación del modelo DBSCAN ---
@@ -1236,7 +1236,7 @@ print("DBSCAN")
 print('Silhouette Score: ', silhouette_score(BDD2_out, model_db.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_db.labels_))
 
-"""**Se obtuvo un Silhouette Score menor en comparación con K-means cuyo puntaje fue de 0,48 en Dataset Escalado y 0.57 en Dataset reducido. Igualmente Calinski harabasz score es muchísimo menor, ya que para K-means fue de 4858en Dataset Escalado y 6469 en dataset reducido.**"""
+"""**Se obtuvo un Silhouette Score mejor en comparación con K-means cuyo puntaje fue de 0,48 en Dataset Escalado y menor en comparación con  0.57 en Dataset reducido de K-means. Para Calinski harabasz score es muchísimo menor, ya que para K-means fue de 4858 en Dataset Escalado y 6469 en dataset reducido.**"""
 
 # Predicción de los clusters
 Cluster_3 = model_db.fit_predict(BDD2_out)
@@ -1248,7 +1248,10 @@ BDD_final.head(3)
 
 BDD_final['Cluster_3DB_DO'].value_counts()
 
-"""##Dataset reducido"""
+"""**Se observa que hay dos etiquetas o clases ( 0 y -1). DBSCAN está llevando todos los datos a la clase cero y los valores de ruido y/o atípicos a la clase -1. Esto puede explicar el resultado bajo de Calinski harabasz score, al tener solo un cluster comparado con K-means donde teníamos 3, por lo tanto no puede compararse tanto el resultado entre algoritmos con respecto a Calinski harabasz score, sino solamente con el índice de silueta que resultó mejor para K-means**. **Hasta aquí podría decirse que DBSCAN no es tan útil para nuestra base de datos. **Sin embargo, vamos a utilizar otros valores de epsilon más bajos para verificar si se forman otros tipos de clusters.**
+
+##Dataset reducido
+"""
 
 # --- Selección de hiperparámetros eps ---
 
@@ -1276,22 +1279,28 @@ kl.elbow
 epsilon = distances[kl.elbow]
 epsilon
 
+"""**Se observa una gráfica similar a la inicial y el valor de epsilon es igual**
+Un valor epsilonmucho más grande implica que el algoritmo DBSCAN considera puntos como cercanos incluso si están a una distancia considerable entre sí. Esto puede llevar a la formación de clusters más grandes y menos densos, ya que puntos que están más separados aún pueden ser considerados parte del mismo cluster.
+"""
+
 # --- Selección de hiperparámetros min_sample ---
 silhoutte_coefs = []
 
-for min_points in [8, 10, 15, 20, 30]:
+for min_points in range(5, 31):
     model_d = DBSCAN(eps = epsilon, min_samples = min_points)
     model_d.fit(X_pca)
     silhoutte_coefs.append(silhouette_score(X_pca, model_d.labels_))
 
 plt.figure(figsize = (12, 8))
-plt.plot([8, 10, 15, 20, 30], silhoutte_coefs, color = 'r', marker = '^')
+plt.plot(range(5, 31), silhoutte_coefs, color='r', marker='^')
 plt.xlabel('Muestras mínimas de cada cluster')
 plt.ylabel('Silhoutte Score')
 plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
-# --- Modelo DBSCAN ---
+"""**Aquí se observa que es indiferente la cantidad de muestras que oscilan entre 8 y 30**"""
+
+# --- Modelo DBSCAN --- Aplicado esta vez para 8 muestras
 model_db_pca = DBSCAN(eps = 0.5, min_samples = 8)
 model_db_pca.fit(X_pca)
 
@@ -1299,6 +1308,8 @@ model_db_pca.fit(X_pca)
 print("DBSCAN")
 print('Silhouette Score: ', silhouette_score(X_pca, model_db_pca.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(X_pca, model_db_pca.labels_))
+
+"""**Se observa el mejor de los puntajes en cuanto a silueta, el Calinski harabasz score es bajo.**En este caso, un valor de 0,84 indica que los clusters están bastante bien definidos y separados**"""
 
 # Predicción de los clusters
 Cluster_4 = model_db_pca.fit_predict(X_pca)
@@ -1317,5 +1328,60 @@ ax = fig.add_subplot(111)
 ax.scatter(X_pca[Cluster_4 == 0], [0]*len(X_pca[Cluster_4 == 0]), s=40, color='purple', label="cluster 0")
 ax.scatter(X_pca[Cluster_4 == -1], [0]*len(X_pca[Cluster_4 == -1]), s=40, color='red', label="outliers")
 ax.set_xlabel('PC1')
+ax.set_ylabel('PC2')
 ax.legend()
 plt.show()
+
+"""**Al observar gráficamente y ver el número de clústers formados, puede verse que el algoritmo no es útil, ya que generó 69 clases, lo cual no es efectivo para el agrupamiento de la base de datos y por lo tanto, se concluye que este algoritmo no es óptimo para nuestra base de datos**
+
+#Clustering Algorithm: Hierarchical
+"""
+
+# Separación de caracteristicas
+X = BDD_final.iloc[:,1:10]
+print(X.shape)
+X.head()
+
+#Uso del dendrograma para encontrar el número óptimo de cluster
+
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Función de vinculación para agrupar datos según similud
+Z = linkage(X, method='ward', metric='euclidean')
+Z[:5]
+
+# Dibujo del dendograma
+labelList = list(BDD_final['Probable manera de muerte'])
+
+plt.figure(figsize=(13, 12))
+dendrogram(
+    Z,
+    orientation='right',
+    labels=labelList,
+    distance_sort='descending',
+    show_leaf_counts=False,
+    leaf_font_size=16
+)
+plt.show()
+
+# Calcular la matriz de enlace
+from scipy.cluster.hierarchy import linkage, fcluster
+
+Z = linkage(BDD_final, method='average')
+
+# Determinar el número de clusters usando un criterio (e.g., distancia de corte)
+num_clusters = 3
+Cluster_5 = fcluster(Z, num_clusters, criterion='maxclust')
+
+# Agrego el cluster a la base
+BDD_final['Cluster_5H']= Cluster_5
+
+#Verificamos la base
+BDD_final.head(3)
+
+silhouette = silhouette_score(BDD_final, Cluster_5)
+calinski_harabasz = calinski_harabasz_score(BDD2_out, Cluster_5)
+print(f'Silhouette Score: {silhouette}')
+print(f'Calinski-Harabasz Score: {calinski_harabasz}')
+
+"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta.**"""
