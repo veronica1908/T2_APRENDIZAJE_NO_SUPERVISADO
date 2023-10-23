@@ -1386,4 +1386,144 @@ calinski_harabasz = calinski_harabasz_score(BDD2_out, Cluster_5)
 print(f'Silhouette Score: {silhouette}')
 print(f'Calinski-Harabasz Score: {calinski_harabasz}')
 
-"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta en el dataset reducido**"""
+"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta en el dataset reducido**
+
+#Interpretación clusters con el mejor algoritmo (K-means: Dataset reducido)
+"""
+
+# Composición de los clusters formados
+sns.countplot(x="Cluster_2KM_DR",data=BDD_final, palette="Set2", order = BDD_final['Cluster_2KM_DR'].value_counts().index)
+
+"""Se tiene una distribución de datos que no es muy pareja: el grupo 1 tiene más datos, le sigue el grupo 0 con una mediana diferencia y está en último lugar el grupo 2 con una gran diferencia de observaciones (menos)"""
+
+# Composición de los clusters - Media de las variables por cluster
+BDD_final.groupby(['Cluster_2KM_DR']).mean()
+
+# Variables Categóricas
+cat_cols = ['mes', 'Área defunción', 'Sexo', 'Probable manera de muerte', 'Seguridad social', 'Estado civil', 'Nivel educativo']
+
+pal=['autumn','cool','magma','spring','winter', 'viridis', 'cividis'] # 7 paletas de color para 7 variables categóricas
+
+fig,axs=plt.subplots(ncols=7,figsize =(30, 10))
+
+for idx,i in enumerate(BDD_final[cat_cols].columns):
+    plt.title(i)
+    sns.histplot(data=BDD_final,x='Cluster_2KM_DR', hue=i, palette=pal[idx], binwidth=.5, ax=axs[idx] ,multiple='dodge').set_xlim
+
+#######################################################################################################################################################################
+#Variable Mes: 'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12
+#Variable Área de defunción: 'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3
+#Variable sexo: 'FEMENINO':0, 'MASCULINO':1
+#Variable Probable manera de muerte: 'SIN INFORMACIÓN': 0, 'NATURAL (ENFERMEDAD)':1, 'ACCIDENTE':2, 'SUICIDIO (AUTOLESIÓN)':3, 'HOMICIDIO':4
+#Variable Seguridad social: 'SIN INFORMACIÓN': 0,'NO ASEGURADO':1, 'EXCEPCIÓN':2, 'SUBSIDIADO':3, 'CONTRIBUTIVO':4, 'ESPECIAL':5
+#Variable Estado civil: 'SIN INFORMACIÓN': 0,'SOLTERO(A)':1,'UNIÓN LIBRE':2,'CASADO(A)':3,'SEPARADO (A)':4,'VIUDO(A)':5
+#Variable Nivel educativo: 'SIN INFORMACIÓN': 0,'NINGUNO':1,'PREESCOLAR':2,'BÁSICA PRIMARIA':3,'BÁSICA SECUNDARIA':4,'MEDIA ACADÉMICA':5,'MEDIA TÉCNICA':6,
+                          #'TÉCNICA PROFESIONAL':7,'TECNOLÓGICA':8,'PROFESIONAL':9,'ESPECIALIZACION':10,'MAESTRÍA':11
+########################################################################################################################################################################
+
+"""Para la variable mes, puede verse similar distribución de características con respecto al análisis general, ya que en el grupo 1 hay más características, seguido del grupo 0 y por último el grupo 2. Sin embargo, hay diferencias en la composición de estos, ya que en el grupo 0, dominan los meses 5, 6 y 7, en el grupo 1 domina el mes 1 y 2 y en el grupo 3 dominan los meses 6 y 1.
+
+
+En cuanto al área de defunción, los grupos 0 y 2 tienen similar proporción en la distribución de categorías, siendo la cabecera municipal (1) la de mayor cantidad características y por una gran diferencia por debajo, le sigue el área rural dispersa (2) y luego el centro poblado (1). Para el grupo 1 igualmente domina la cantidad de características para cabecera municipal, pero le sigue en segundo lugar el centro poblado y por último el rural disperso. Las características sin información (0) representan baja proporción ya que se trató en los datos atípicos y reducción de la dimensionalidad.
+
+Para la variable sexo, tanto en el grupo 0 como en el grupo 2,  dominan el sexo Femenino (0) en cuanto a cantidad de características, en el grupo 1 hay más características para el sexo masculino (1).
+
+Para la variable de probable manera de muerte, se tiene mayor cantidad de características en el tipo enfermedad (1), para los tres grupos, en segundo lugar están las características clasificadas sin información (0) para los grupos 0 y 1, mientras que en el grupo 2, es el homicidio (4), el que está en segundo lugar.
+
+Se tiene diferentes distribuciones en los grupos para la variable Seguridad social, en el grupo 1 domina el tipo subsidiado (3), seguido por poca diferencia del tipo contributivo (4). En el grupo 2 domina el tipo contributivo (4) seguido por poca diferencia del tipo subsidiado (3). Y para el grupo 3, se tiene similar propoción que para el grupo 0 pero representado con menor cantidad de características.
+
+Para el estado civil, en el grupo 0, se tiene mayor cantidad de características en el tipo CASADO (3), en el grupo 1 domina el tipo VIUDO (5),  mientras que en el grupo 2 domina el tipo UNIÓN LIBRE (2).
+
+Finalmente, en cuanto a nivel educativo, tanto para el grupo 0 como para el grupo 1, dominan el nivel BÁSICA PRIMARIA (3), mientras que en el grupo 2 domina el nivel MEDIA ACADÉMICA (5).
+
+"""
+
+# Análisis de la edad
+temp_edad = BDD_final[['Cluster_2KM_DR','Edad']]
+fig,axs=plt.subplots(ncols=3,figsize =(25, 10))
+
+for i in list(range(0,3)):
+    plt.title(i)
+    sns.histplot(data=temp_edad[temp_edad.Cluster_2KM_DR==i],x='Edad',hue='Cluster_2KM_DR',palette=pal[i],binwidth=.8,ax=axs[i],multiple='dodge')
+
+"""Para la variable numérica EDAD,se tiene que para el grupo 0, están las edades entre los 50 y los 75 años, para el grupo 1 están las edades entre los 76 y 110 años y en el grupo 2 están las edades entre los 15 y los 50 años. Se observa que los cluster o grupos no comparten rangos de edades, lo que muestra una buena clasificación de los datos en lso clústers."""
+
+# Análisis del año
+temp_año = BDD_final[['Cluster_2KM_DR','año']]
+fig,axs=plt.subplots(ncols=3,figsize =(25, 10))
+
+for i in list(range(0,3)):
+    plt.title(i)
+    sns.histplot(data=temp_año[temp_año.Cluster_2KM_DR==i],x='año',hue='Cluster_2KM_DR',palette=pal[i],binwidth=.8,ax=axs[i],multiple='dodge')
+
+"""Para la otra variable numérica AÑO, al haber solo dos años para los datos, se observa que se comparten datos, sin embargo hay una distribución similar en cuanto a proporciones de los años 2021 y 2022."""
+
+BDD_final[BDD_final['Cluster_2KM_DR']==2]['Probable manera de muerte'].value_counts(normalize=True)
+
+"""#**Resumen de la interpretación clusters con el mejor algoritmo (K-means: Dataset reducido)**
+
+##**Cluster 0**
+
+Mayor ocurrencia de muertes:
+En los meses de mayo, junio y julio
+En la cabecera municipal, luego en zona rural dispersa
+En sexo femenino
+Por enfermedad, luego sin información y luego por accidente
+Para personas con seguridad social tipo subsidiado y contributivo en segundo lugar.
+Para el estado civil Casado (a)
+Para el nivel educativo Básica Primaria
+Para las personas con edades entre los 50 años y los 75 años.
+
+##**Cluster 1**
+
+Mayor ocurrencia de muertes:
+En los meses de enero y febrero
+En la cabecera municipal, luego en centro poblado
+En sexo masculino
+Por enfermedad, luego sin información y luego por accidente
+Para personas con seguridad social tipo contributivo y subsidiado en segundo lugar.
+Para el estado civil Viudo (a)
+Para el nivel educativo Básica Primaria
+Para las personas con edades entre los 76 años y los 110 años.
+
+##**Cluster 2**
+
+Mayor ocurrencia de muertes:
+En los meses de enero y junio
+En la cabecera municipal, luego en zona rural dispersa
+En sexo femenino
+Por enfermedad, luego por homicidio y luego sin información
+Para personas con seguridad social tipo subsidiado y contributivo en segundo lugar.
+Para el estado civil Unión libre.
+Para el nivel educativo Media académica.
+Para las personas con edades entre los 15 años y los 50 años.
+
+#Análisis de factores
+
+##Prueba de adecuación
+La prueba de esfericidad de Bartlett verifica si las variables observadas se intercorrelacionan o no utilizando la matriz de correlación observada contra la matriz de identidad. Si la prueba resulta estadísticamente insignificante, no se debe emplear un análisis factorial.
+
+En esta prueba de Bartlett, el valor p es 0. La prueba fue estadísticamente significativa, lo que indica que la matriz de correlación observada no es una matriz de identidad.
+"""
+
+from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity
+
+# Selección de variables de encuestas
+BDD_FA = BDD2_out[BDD2_out.columns[6:20]]
+
+# Aplicación de la prueba bartlett_sphericity
+chi_square_value, p_value = calculate_bartlett_sphericity(BDD_FA)
+chi_square_value, p_value
+
+"""La prueba KMO mide la idoneidad de los datos para el análisis factorial. Determina la adecuación para cada variable observada y para el modelo completo. KMO estima la proporción de varianza entre todas las variables observadas. Una proporción más baja es más adecuada para el análisis factorial. Los valores de KMO oscilan entre 0 y 1. Un valor de KMO inferior a 0,6 se considera inadecuado.
+
+"""
+
+from factor_analyzer.factor_analyzer import calculate_kmo
+
+# Aplicación de la prueba KMO
+kmo_all,kmo_model=calculate_kmo(BDD_FA)
+kmo_model
+
+"""**El KMO general de nuestros datos es 0.51. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
+
