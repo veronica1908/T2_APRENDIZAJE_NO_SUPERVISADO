@@ -1384,4 +1384,4 @@ calinski_harabasz = calinski_harabasz_score(BDD2_out, Cluster_5)
 print(f'Silhouette Score: {silhouette}')
 print(f'Calinski-Harabasz Score: {calinski_harabasz}')
 
-"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta.**"""
+"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta en el dataset reducido**"""
