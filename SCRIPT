@@ -982,6 +982,8 @@ BDD2.hist(figsize=(14,10), bins=15)
 plt.tight_layout()
 plt.show()
 
+"""Se observa solo distribución masomenos normal para las variablesEstado civil, Nivel educativo y Edad"""
+
 # Escalamos las variables numéricas
 train_cols = BDD2[['Edad', 'año']]
 
