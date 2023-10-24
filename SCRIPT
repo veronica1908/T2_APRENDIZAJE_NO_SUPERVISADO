@@ -739,25 +739,6 @@ fig_C.show()
 
 """Tanto en 2021 como en 2022, la mayoría de muertes fueron de manera natural por enfermedad, sin embargo hay una buena proporción sin información en el 2022. En 2021 se dió una porción de homicidios y en 2022 se cataloga como muerte no natural."""
 
-import plotly.express as px
-
-# Crear dataset para Cantidad de defunciones por Edad y por año
-BASE_E = BDD.groupby(['Nivel educativo', 'Estado civil'])[['Fecha de Defunción']].count().reset_index()
-
-# Crear gráfica
-fig_E = px.bar(BASE_E, x='Estado civil', y='Fecha de Defunción', color='Nivel educativo', barmode='stack')
-
-# Agregar detalles a la gráfica
-fig_E.update_layout(
-    title='<b>Cantidad de defunciones por Estado civil y por Nivel educativo<b>',
-    xaxis_title='Estado civil',
-    yaxis_title='Número de defunciones',
-    template='simple_white',
-    title_x=0.5
-)
-
-fig_E.show()
-
 # crear dataset para Cantidad de defunciones por mes y por Probable manera de muerte
 
 BASE_F = BDD.groupby(['mes','Probable manera de muerte'])[['Fecha de Defunción']].count().reset_index()
@@ -775,10 +756,26 @@ fig_F.update_layout(
 
 """la mayoría de meses domina la muerte por enfermedad, en todos está presente  la muerte por homicidio y una baja proporción por accidentes.
 
-> Bloque con sangría
 
 
 """
+
+# crear dataset para Cantidad de defunciones por mes y por año para definir más adelante si el año se deja como numérica
+
+BASE_I = BDD.groupby(['mes','año'])[['Fecha de Defunción']].count().reset_index()
+
+# crear gráfica
+fig_I = px.bar(BASE_I, x = 'mes', y ='Fecha de Defunción', color ='año', barmode = 'group')
+
+# agregar detalles a la gráfica
+fig_I.update_layout(
+    title = '<b>Cantidad de defunciones por mes y por año<b>',
+    xaxis_title = 'muertes por mes y año',
+    yaxis_title = 'Número de defunciones',
+    template = 'simple_white',
+    title_x = 0.5)
+
+"""Se observa que en todos los meses del año 2022 se presentó reducción en la cantidad de muertes en comparación con el año 2021, por lo tanto el año se considerará como variable numérica."""
 
 # crear dataset para Cantidad de defunciones porEdad y por Probable manera de muerte
 
@@ -797,7 +794,7 @@ fig_G.update_layout(
 
 fig_G.show()
 
-"""Cuando se observa la información pór manera de morir y su distribución de edades, se puede decir que la muerte por enfermedad predomina en personas mayores de 50 años, mientras que para el resto de maneras predominan edades inferiores a 50 años."""
+"""Cuando se observa la información por manera de morir y su distribución de edades, se puede decir que la muerte por enfermedad predomina en personas mayores de 50 años, mientras que para el resto de maneras predominan edades inferiores a 50 años."""
 
 #Veamos la Entidad administradora de salud para las defunciones cuya "probable manera de muerte" fue la "NATURAL (ENFERMEDAD)"
 # crear dataset para MUERTE NATURAL
@@ -817,15 +814,9 @@ fig_H.update_layout(
 
 fig_H.show()
 
-"""Cuando se quiere ver la información de fallecidos por enfermedad y su EPS, se tiene que la mayoría pertenecían a La Nueva EPS, y EMSSANAR"""
+"""Cuando se quiere ver la información de fallecidos por enfermedad y su EPS, se tiene que la mayoría pertenecían a La Nueva EPS, y EMSSANAR
 
-# Matriz de correlación
-plt.figure(figsize=(20,10))
-c= BDD.corr()
-sns.heatmap(c, annot=True)
-#Solo se observa una correlación baja entre la edad y el nivel de compromiso.
-
-"""#Preparación de los datos para aplicar algoritmos
+#Preparación de los datos para aplicar algoritmos
 
 ##Creación de dataset
 """
@@ -842,7 +833,7 @@ BDD1 = BDD[VarNuevas].copy()
 #Visualizamos la nueva base
 BDD1.head()
 
-"""#Preprocesamiento de los datos
+"""#Preprocesamiento de los datos para aplicar algoritmos
 
 ##Metodología 1: Codificación de las categorías de las variables
 """
@@ -851,13 +842,20 @@ BDD1.head()
 #Hacemos una copia de la base de datos
 BDD2 = BDD1.copy()
 
+
+#Para la codificación, se tiene en cuenta la distribución de características para cada categoría de cada variable, asignando mayor número a la categoría con más datos de acuerdo a
+#la exploración de los datos que se hizo previamente.
+
 #Variable Mes: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenarse por temporalidad
 #Para lo cual convertiremos en la columna "MesN"
 
-BDD2['mes'] = BDD1['mes'].map({'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12})
+BDD2['mes'] = BDD1['mes'].map({'January': 12, 'July':11, 'June':10,
+                               'May':9, 'February':8 ,'April':7,
+                               'August':6, 'March':5, 'October':4,
+                               'December':3, 'September': 2,  'November':1})
 
 #Variable Área de defunción: La codificaremos de mayor a menor cantidad de población.
-BDD2['Área defunción'] = BDD1['Área defunción'].map({'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3})
+BDD2['Área defunción'] = BDD1['Área defunción'].map({'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':3, 'CENTRO POBLADO':2, 'RURAL DISPERSO':1})
 
 #Variable sexo: se codifica similar a si fuera dummies
 BDD2['Sexo'] = BDD1['Sexo'].map({'FEMENINO':0, 'MASCULINO':1})
@@ -871,27 +869,24 @@ BDD2['Probable manera de muerte'] = BDD1['Probable manera de muerte'].map({'SIN 
                                                    'HOMICIDIO':4})
 
 #Variable Seguridad social: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
-#Para lo cual la convertiremos en la columna "Nivel SS"
 
-BDD2['Seguridad social'] = BDD1['Seguridad social'].map({'SIN INFORMACIÓN': 0,
-                                                   'NO ASEGURADO':1,
-                                                   'EXCEPCIÓN':2,
-                                                   'SUBSIDIADO':3,
-                                                   'CONTRIBUTIVO':4,
-                                                   'ESPECIAL':5})
+BDD2['Seguridad social'] = BDD1['Seguridad social'].map({'ESPECIAL':0,
+                                                         'NO ASEGURADO':1,
+                                                         'SIN INFORMACIÓN': 2,
+                                                         'EXCEPCIÓN':3,
+                                                         'SUBSIDIADO':4,
+                                                         'CONTRIBUTIVO':5})
 
-#Variable Estado civil: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
-#Para lo cual convertimos en la columna "Nivel compromiso civil"
+#Variable Estado civil: puede convertirse en una variable de tipo numérica.
 
-BDD2['Estado civil'] = BDD1['Estado civil'].map({'SIN INFORMACIÓN': 0,
-                                                           'SOLTERO(A)':1,
-                                                           'UNIÓN LIBRE':2,
-                                                           'CASADO(A)':3,
-                                                           'SEPARADO (A)':4,
-                                                           'VIUDO(A)':5})
+BDD2['Estado civil'] = BDD1['Estado civil'].map({'SEPARADO (A)':0,
+                                                 'SIN INFORMACIÓN': 1,
+                                                 'UNIÓN LIBRE':2,
+                                                 'SOLTERO(A)':3,
+                                                 'CASADO(A)':4,
+                                                 'VIUDO(A)':5})
 
 #Variable Nivel educativo: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
-#Para lo cual convertiremos en la columna "Nivel educación"
 
 BDD2['Nivel educativo'] = BDD1['Nivel educativo'].map({'SIN INFORMACIÓN': 0,
                                                        'NINGUNO':1,
@@ -908,73 +903,16 @@ BDD2['Nivel educativo'] = BDD1['Nivel educativo'].map({'SIN INFORMACIÓN': 0,
 
 BDD2.head()
 
-"""##Metodología 2. POR FRECUENCIAS"""
-
-#Metodología 2. POR FRECUENCIAS
-#Hacemos una copia de la base de datos
-BDD3 = BDD1.copy()
-
-#UTILIZAMOS LA MISMA CODIFICACIÓN QUE EN LA METODOLOGÍA ANTERIOR, EXCEPTO PARA LA VARIABLE "Probable manera de muerte", a la cual le calcularemos frecuencia
-
-#Variable Mes: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenarse por temporalidad
-#Para lo cual convertiremos en la columna "MesN"
-
-BDD3['mes'] = BDD1['mes'].map({'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12})
-
-#Variable Área de defunción: La codificaremos de mayor a menor cantidad de población.
-BDD3['Área defunción'] = BDD1['Área defunción'].map({'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3})
-
-#Variable sexo: se codifica similar a si fuera dummies
-BDD3['Sexo'] = BDD1['Sexo'].map({'FEMENINO':0, 'MASCULINO':1})
-
-#Variable Seguridad social: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de seguridad social utilizando categorías numéricas
-#Para lo cual la convertiremos en la columna "Nivel SS"
-
-BDD3['Seguridad social'] = BDD1['Seguridad social'].map({'SIN INFORMACIÓN': 0,
-                                                   'NO ASEGURADO':1,
-                                                   'EXCEPCIÓN':2,
-                                                   'SUBSIDIADO':3,
-                                                   'CONTRIBUTIVO':4,
-                                                   'ESPECIAL':5})
-
-#Variable Estado civil: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de compromiso que representa el estado civil, utilizando categorías numéricas
-#Para lo cual convertimos en la columna "Nivel compromiso civil"
-
-BDD3['Estado civil'] = BDD1['Estado civil'].map({'SIN INFORMACIÓN': 0,
-                                                           'SOLTERO(A)':1,
-                                                           'UNIÓN LIBRE':2,
-                                                           'CASADO(A)':3,
-                                                           'SEPARADO (A)':4,
-                                                           'VIUDO(A)':5})
-
-#Variable Nivel educativo: puede convertirse en una variable de tipo numérica de acuerdo con su naturaleza, ya que se puede ordenar menor a mayor nivel de estudios utilizando categorías numéricas
-#Para lo cual convertiremos en la columna "Nivel educación"
-
-BDD3['Nivel educativo'] = BDD1['Nivel educativo'].map({'SIN INFORMACIÓN': 0,
-                                                       'NINGUNO':1,
-                                                       'PREESCOLAR':2,
-                                                       'BÁSICA PRIMARIA':3,
-                                                       'BÁSICA SECUNDARIA':4,
-                                                       'MEDIA ACADÉMICA':5,
-                                                       'MEDIA TÉCNICA':6,
-                                                       'TÉCNICA PROFESIONAL':7,
-                                                       'TECNOLÓGICA':8,
-                                                       'PROFESIONAL':9,
-                                                       'ESPECIALIZACION':10,
-                                                       'MAESTRÍA':11})
-
-# Calcular la frecuencia de cada categoría Probable manera de muerte
-frecuencia = BDD3['Probable manera de muerte'].value_counts(normalize=True)
-
-# Aplicar la codificación de frecuencia
-BDD3['Probable manera de muerte'] = BDD3['Probable manera de muerte'].map(frecuencia)
-
-BDD3.head()
-
 """##Verificar las nuevas variables y ajustarlas"""
 
 #Verificamos la dimensionalidad ede la base con la metodología 1, con la cual seguiremos trabajando
 BDD2.shape
+
+# Matriz de correlación
+plt.figure(figsize=(20,10))
+c= BDD2.corr()
+sns.heatmap(c, annot=True)
+#Solo se observa una correlación baja entre la edad y el estado civil.
 
 #Verificamos graficamente para analizar
 
@@ -982,16 +920,10 @@ BDD2.hist(figsize=(14,10), bins=15)
 plt.tight_layout()
 plt.show()
 
-"""Se observa solo distribución masomenos normal para las variablesEstado civil, Nivel educativo y Edad"""
+"""Se observa solo distribución masomenos normal para las variables Nivel educativo y Edad
 
-# Escalamos las variables numéricas
-train_cols = BDD2[['Edad', 'año']]
-
-scaler = StandardScaler()
-scaled_BDD2 = pd.DataFrame(scaler.fit_transform(train_cols), columns = train_cols.columns)
-scaled_BDD2.head(3)
-
-"""### Tratamiento de valores atípicos"""
+### Tratamiento de valores atípicos
+"""
 
 # Tratamiento de valores atípicos
 BDD2_out= BDD2.copy()
@@ -1019,6 +951,18 @@ outs_idx=pd.Series(sorted(np.concatenate(outs_idx))).unique()
 BDD2_out.drop(index=outs_idx,inplace=True)
 BDD2_out.reset_index(drop=True,inplace=True) # 101174 rows left
 
+# Escalamos las variables numéricas
+train_cols = BDD2_out[['Edad', 'año']]
+
+scaler = StandardScaler()
+scaled_BDD2_out = pd.DataFrame(scaler.fit_transform(train_cols), columns = train_cols.columns)
+scaled_BDD2_out.head(5)
+
+#  Union de data numéricas  y categórica
+cols= ['Edad', 'año']
+BDD2_out[cols]=scaled_BDD2_out
+BDD2_out.head()
+
 #Verificamos las dimensiones de la base antes de tratar los valores atípicos
 BDD2.shape
 
@@ -1027,8 +971,8 @@ BDD2_out.shape
 
 """##Reducción de la dimensionalidad"""
 
-#Cree un dataset reducido que proporcione el 100% de la varianza de entrada que debe explicarse
-pca = PCA(n_components=1).fit(BDD2_out)
+#Cree un dataset reducido que proporcione el 84% de la varianza de entrada que debe explicarse
+pca = PCA(n_components=3).fit(BDD2_out)
 
 #Veamos cuántas componentes ha conservado PCA:
 pca.n_components_
@@ -1039,7 +983,7 @@ PCA_variance = pd.DataFrame({'Varianza explicada (%)':
 
 fig, ax = plt.subplots(1, 1, figsize = (7, 5))
 
-bar = sns.barplot(x = ['PC ' + str(i) for i in range(1)],
+bar = sns.barplot(x = ['PC ' + str(i) for i in range(3)],
                   y = PCA_variance['Varianza explicada (%)'],
                   linewidth = 1.5, edgecolor = 'k', color = '#4bafb8',
                   alpha = 0.8)
@@ -1047,11 +991,17 @@ bar = sns.barplot(x = ['PC ' + str(i) for i in range(1)],
 plt.show()
 
 PCA_variance
-##Este componente explica el 94,3% de la varianza
+##El componente 1 explica el 59.8% de la varianza
 
 #Por último, transforme "BDD2" de 9 columnas X_pca
 X_pca = pca.fit_transform(BDD2_out)
 X_pca
+
+BDD_final = BDD2_out.copy()
+BDD_final['PCA1'] = X_pca [:,0]
+BDD_final['PCA2'] = X_pca [:,1]
+BDD_final['PCA3'] = X_pca [:,2]
+BDD_final.head(3)
 
 """#Clustering Algorithm: K-Means
 
@@ -1089,16 +1039,15 @@ model_kmeans = KMeans(n_clusters = 3, **kmeans_constants)
 model_kmeans.fit(BDD2_out)
 
 # --- Evaluación del modelo kmeans ---
-print("K-MEANS")
+print("K-MEANS D.E.")
 print('Inertia: ', model_kmeans.inertia_)
 print('Silhouette Score: ', silhouette_score(BDD2_out, model_kmeans.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_kmeans.labels_))
 
-"""**-La baja inercia indica clusters compactos.**
+"""**-La inercia indica clusters no tan compactos.**
 
-**-La alta puntuación de racimos de silueta indica que están bien definidas.**
-
-**-El alto puntaje Calinski-Harabasz sugiere clusters bien separados.**
+**-La puntuación de silueta indica que no están tan bien definidas al ser bajo.**
+**-El bajo puntaje Calinski-Harabasz sugiere clusters no tan bien separados.**
 """
 
 # Predicción de los clusters
@@ -1146,12 +1095,12 @@ model_kmeans_pca = KMeans(n_clusters = 3, **kmeans_constants)
 model_kmeans_pca.fit(X_pca)
 
 # --- Evaluación del modelo kmeans ---
-print("K-MEANS")
+print("K-MEANS D.R.")
 print('Inertia: ', model_kmeans_pca.inertia_)
 print('Silhouette Score: ', silhouette_score(X_pca, model_kmeans_pca.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(X_pca, model_kmeans_pca.labels_))
 
-"""**Estos resultados indican que el modelo de K-Means ha logrado formar clusters relativamente compactos y bien definidos en el conjunto de datos, mejor en comparación con Dataset Escalado.**"""
+"""**Estos resultados indican que el modelo de K-Means NO ha logrado formar clusters relativamente compactos y bien definidos en el conjunto de datos, aunque tiene un mejorpuntaje en comparación con Dataset Escalado.**"""
 
 # Predicción de los clusters
 Cluster_2 = model_kmeans.fit_predict(X_pca)
@@ -1161,13 +1110,13 @@ BDD_final['Cluster_2KM_DR']= Cluster_2
 # A partir de ahora, sólo trabajaremos con "BDD_final"
 BDD_final.head(3)
 
-# 3d scatterplot using matplotlib
+# 3d scatterplot using matplotlib para el Dataset reducido ya que dió mejores métricas
 
 fig = plt.figure(figsize = (15,15))
 ax = fig.add_subplot(111, projection='3d')
-ax.scatter(X_pca[Cluster_2 == 0,0], X_pca[Cluster_2 == 0,0], X_pca[Cluster_2 == 0,0], s=40, color='blue', label="cluster 0")
-ax.scatter(X_pca[Cluster_2 == 1,0], X_pca[Cluster_2 == 1,0], X_pca[Cluster_2 == 1,0], s=40, color='orange', label="cluster 1")
-ax.scatter(X_pca[Cluster_2 == 2,0], X_pca[Cluster_2 == 2,0], X_pca[Cluster_2 == 2,0], s=40, color='green', label="cluster 2")
+ax.scatter(X_pca[Cluster_2 == 0,0], X_pca[Cluster_2 == 0,1], X_pca[Cluster_2 == 0,2], s=40, color='blue', label="cluster 0")
+ax.scatter(X_pca[Cluster_2 == 1,0], X_pca[Cluster_2 == 1,1], X_pca[Cluster_2 == 1,2],s=40, color='orange', label="cluster 1")
+ax.scatter(X_pca[Cluster_2 == 2,0], X_pca[Cluster_2 == 2,1], X_pca[Cluster_2 == 2,2],s=40, color='green', label="cluster 2")
 ax.set_xlabel('PC1')
 ax.set_ylabel('PC2')
 ax.set_zlabel('PC3')
@@ -1225,20 +1174,20 @@ plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
 # --- Modelo DBSCAN ---
-model_db = DBSCAN(eps = epsilon, min_samples = 30, n_jobs=-1)
+model_db = DBSCAN(eps = epsilon, min_samples = 19, n_jobs=-1)
 model_db.fit(BDD2_out)
 
-"""**eps: Esto significa que cualquier punto que esté a una distancia de hasta 4.242640687119285 unidades de otro punto se considera parte del mismo cluster.**
+"""**eps: Esto significa que cualquier punto que esté a la distancia indicada en unidades de otro punto se considera parte del mismo cluster.**
 
-**min_muestras=30 : El parámetro min_samples especifica el número mínimo de muestras que deben estar en la vecindad de un punto para que ese punto sea considerado un "punto central". En este caso, se ha establecido que al menos 30 muestras deben estar dentro de la vecindad de un punto para que ese punto sea considerado un "punto central".**
+**min_muestras=19 : El parámetro min_samples especifica el número mínimo de muestras que deben estar en la vecindad de un punto para que ese punto sea considerado un "punto central". En este caso, se ha establecido que al menos 19 muestras deben estar dentro de la vecindad de un punto para que ese punto sea considerado un "punto central".**
 """
 
 # --- Evaluación del modelo DBSCAN ---
-print("DBSCAN")
+print("DBSCAN D.O.")
 print('Silhouette Score: ', silhouette_score(BDD2_out, model_db.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(BDD2_out, model_db.labels_))
 
-"""**Se obtuvo un Silhouette Score mejor en comparación con K-means cuyo puntaje fue de 0,48 en Dataset Escalado y menor en comparación con  0.57 en Dataset reducido de K-means. Para Calinski harabasz score es muchísimo menor, ya que para K-means fue de 4858 en Dataset Escalado y 6469 en dataset reducido.**"""
+"""**Se obtuvo un Silhouette Score más bajo en comparación con K-means en el dataset reducido, pero levemenmte mejor en comparación con el dataset escalado de K-means. En cuanto a Calinski harabasz score es muchísimo menor.**"""
 
 # Predicción de los clusters
 Cluster_3 = model_db.fit_predict(BDD2_out)
@@ -1281,8 +1230,8 @@ kl.elbow
 epsilon = distances[kl.elbow]
 epsilon
 
-"""**Se observa una gráfica similar a la inicial y el valor de epsilon es igual**
-Un valor epsilonmucho más grande implica que el algoritmo DBSCAN considera puntos como cercanos incluso si están a una distancia considerable entre sí. Esto puede llevar a la formación de clusters más grandes y menos densos, ya que puntos que están más separados aún pueden ser considerados parte del mismo cluster.
+"""**Se observa una gráfica diferente a la inicial y el valor de epsilon es menor**
+Un valor epsilon mucho más grande implica que el algoritmo DBSCAN considera puntos como cercanos incluso si están a una distancia considerable entre sí. Esto puede llevar a la formación de clusters más grandes y menos densos, ya que puntos que están más separados aún pueden ser considerados parte del mismo cluster.
 """
 
 # --- Selección de hiperparámetros min_sample ---
@@ -1300,18 +1249,18 @@ plt.ylabel('Silhoutte Score')
 plt.title('Silhoutte Score - Min Samples de Clusters')
 plt.show()
 
-"""**Aquí se observa que es indiferente la cantidad de muestras que oscilan entre 8 y 30**"""
+"""**Aquí se observa que la muestra mínima es de 16**"""
 
-# --- Modelo DBSCAN --- Aplicado esta vez para 8 muestras
-model_db_pca = DBSCAN(eps = 0.5, min_samples = 8)
+# --- Modelo DBSCAN --- Aplicado esta vez para 6 muestras
+model_db_pca = DBSCAN(eps = 0.5, min_samples = 16)
 model_db_pca.fit(X_pca)
 
 # --- Evaluación del modelo DBSCAN ---
-print("DBSCAN")
+print("DBSCAN D.R.")
 print('Silhouette Score: ', silhouette_score(X_pca, model_db_pca.labels_))
 print('Calinski harabasz score: ', calinski_harabasz_score(X_pca, model_db_pca.labels_))
 
-"""**Se observa el mejor de los puntajes en cuanto a silueta, el Calinski harabasz score es bajo.**En este caso, un valor de 0,84 indica que los clusters están bastante bien definidos y separados**"""
+"""**Se observa que el silhoette score disminuyó por debajo de cero, el Calinski harabasz score es muy bajo también, y en la predicción de clúster aumenta hasta 18, lo cuál confirma que no es un algoritmo óptimo para aplicar a esta base.**"""
 
 # Predicción de los clusters
 Cluster_4 = model_db_pca.fit_predict(X_pca)
@@ -1323,20 +1272,26 @@ BDD_final.head(3)
 
 BDD_final['Cluster_4DB_DR'].value_counts()
 
+####################################################
 # 3d scatterplot using matplotlib
-
-fig = plt.figure(figsize=(15, 15))
-ax = fig.add_subplot(111)
-ax.scatter(X_pca[Cluster_4 == 0], [0]*len(X_pca[Cluster_4 == 0]), s=40, color='purple', label="cluster 0")
-ax.scatter(X_pca[Cluster_4 == -1], [0]*len(X_pca[Cluster_4 == -1]), s=40, color='red', label="outliers")
+import random
+clust=BDD_final['Cluster_4DB_DR'].unique().tolist()
+fig = plt.figure(figsize = (15,15))
+ax = fig.add_subplot(111, projection='3d')
+for i in sorted(clust):
+ ax.scatter(X_pca[Cluster_4 == i,0], X_pca[Cluster_4 == i,1],X_pca[Cluster_4 == i,2],s = 40 , color = (random.random(), random.random(), random.random()), label = "cluster "+str(i))
+#ax.scatter(X_pca[Cluster_4 == -1,0],, s = 40 , color = 'blue', label = "cluster N")
+#ax.scatter(X_pca[Cluster_4 == 0,-1],X_pca[Cluster_4 == 0,0], s = 40 , color = 'orange', label = "outliers")
 ax.set_xlabel('PC1')
 ax.set_ylabel('PC2')
+ax.set_zlabel('PC3')
 ax.legend()
 plt.show()
+#############################AJUSTAR##################################
 
-"""**Al observar gráficamente y ver el número de clústers formados, puede verse que el algoritmo no es útil, ya que generó 69 clases, lo cual no es efectivo para el agrupamiento de la base de datos y por lo tanto, se concluye que este algoritmo no es óptimo para nuestra base de datos**
+"""**Al observar gráficamente y ver el número de clústers formados, puede verse que el algoritmo no es útil, ya que generó demasiadas clases, lo cual no es efectivo para el agrupamiento de la base de datos y por lo tanto, se concluye que este algoritmo no es óptimo para nuestra base de datos**
 
-#Clustering Algorithm: Hierarchical
+#Clustering Algorithm: Hierarchical   - PREGUNTA: Uso del dendrograma
 """
 
 # Separación de caracteristicas
@@ -1354,7 +1309,6 @@ Z[:5]
 
 # Dibujo del dendograma
 labelList = list(BDD_final['Probable manera de muerte'])
-
 plt.figure(figsize=(13, 12))
 dendrogram(
     Z,
@@ -1386,15 +1340,24 @@ calinski_harabasz = calinski_harabasz_score(BDD2_out, Cluster_5)
 print(f'Silhouette Score: {silhouette}')
 print(f'Calinski-Harabasz Score: {calinski_harabasz}')
 
-"""**De acuerdo con estos puntajes, este algoritmo tampoco es óptimo para nuestra base de datos y se concluye que K-means es el que mejor se adapta en el dataset reducido**
+"""Para este algoritmo, el Solhouette score es el mejor de todos, sin embargo el El índice Calinski-Harabasz se basa en la comparación de la relación ponderada entre la suma de los cuadrados (la medida de la separación del clúster) y la suma de los cuadrados dentro del clúster (la medida de cómo se empaquetan estrechamente los puntos dentro de un clúster) y para este caso es muy baja, por lo tanto se elige el algoritmo K-means con dataset reducido como el algoritmo óptimo, ya que tiene mucho mejor Calinski-Harabasz Score y la diferencia en el Solhouette score no es mucha.
 
 #Interpretación clusters con el mejor algoritmo (K-means: Dataset reducido)
 """
 
+# Conversión de variables numéricas a valores originales
+train_cols = BDD2_out[['Edad', 'año']]
+scaled_train_BDD2 = pd.DataFrame(scaler.inverse_transform(train_cols), columns = train_cols.columns)
+
+# Union de data numéricas y categórica
+cols = ['Edad', 'año']
+BDD_final[cols] = scaled_train_BDD2
+BDD_final.head(3)
+
 # Composición de los clusters formados
 sns.countplot(x="Cluster_2KM_DR",data=BDD_final, palette="Set2", order = BDD_final['Cluster_2KM_DR'].value_counts().index)
 
-"""Se tiene una distribución de datos que no es muy pareja: el grupo 1 tiene más datos, le sigue el grupo 0 con una mediana diferencia y está en último lugar el grupo 2 con una gran diferencia de observaciones (menos)"""
+"""Se tiene una distribución de datos que no es muy pareja, pero se ordena descendentemente así: el grupo 1 tiene más datos, le sigue el grupo 2 con una mediana diferencia y está en último lugar el grupo 0 con una diferencia similar de observaciones por debajo en comparación con la que hay entre el grupo 1 y el grupo 2."""
 
 # Composición de los clusters - Media de las variables por cluster
 BDD_final.groupby(['Cluster_2KM_DR']).mean()
@@ -1421,7 +1384,9 @@ for idx,i in enumerate(BDD_final[cat_cols].columns):
                           #'TÉCNICA PROFESIONAL':7,'TECNOLÓGICA':8,'PROFESIONAL':9,'ESPECIALIZACION':10,'MAESTRÍA':11
 ########################################################################################################################################################################
 
-"""Para la variable mes, puede verse similar distribución de características con respecto al análisis general, ya que en el grupo 1 hay más características, seguido del grupo 0 y por último el grupo 2. Sin embargo, hay diferencias en la composición de estos, ya que en el grupo 0, dominan los meses 5, 6 y 7, en el grupo 1 domina el mes 1 y 2 y en el grupo 3 dominan los meses 6 y 1.
+"""**FALTA AJUSTAR ESTOS ANÁLISIS DE AQUÍ PARA ABAJO, YA QUE CAMBIÓ BASTANTE LA DISTRIBUCIÓN**
+
+Para la variable mes, puede verse similar distribución de características con respecto al análisis general, ya que en el grupo 1 hay más características, seguido del grupo 0 y por último el grupo 2. Sin embargo, hay diferencias en la composición de estos, ya que en el grupo 0, dominan los meses 5, 6 y 7, en el grupo 1 domina el mes 1 y 2 y en el grupo 3 dominan los meses 6 y 1.
 
 
 En cuanto al área de defunción, los grupos 0 y 2 tienen similar proporción en la distribución de categorías, siendo la cabecera municipal (1) la de mayor cantidad características y por una gran diferencia por debajo, le sigue el área rural dispersa (2) y luego el centro poblado (1). Para el grupo 1 igualmente domina la cantidad de características para cabecera municipal, pero le sigue en segundo lugar el centro poblado y por último el rural disperso. Las características sin información (0) representan baja proporción ya que se trató en los datos atípicos y reducción de la dimensionalidad.
@@ -1526,4 +1491,3 @@ kmo_all,kmo_model=calculate_kmo(BDD_FA)
 kmo_model
 
 """**El KMO general de nuestros datos es 0.51. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
-
