@@ -692,7 +692,7 @@ EXP.show_notebook()
 """Teniendo en cuenta la exploración rápida de los datos para cada variable, tenemos lo siguiente: Todos los datos de defunciones de la base, son de personas que vivían y murieron en Colombia, del departamento del Valle del Cauca, principalmente en el municipio de Guadalajara de Buga con el 99%, sin embargo sus municipios de residencia variaban entre Buga con el 73% y Guacari con un 7%. La principal área de defunción ha sido la cabecera municipal con el 96% de los casos en diferentes barrios, 2% en área rural dispersa y 1% en un centro poblado.
 En cuanto al sitio específico de defunción, el 64% ha fallecido en el hospital, el 30% en su casa, 5% en vías públicas y el otro 1% en otros lugares.
 Las instituciones de salud en las que se han presentado mayor cantidad de fallecidos son la Fundación Hospital San José con el 74% de los casos, 6% en la E.S.E. Hospital Divino Niño y hay un 15% sin información.
-Para el tipo de defunción, se ha tenido un 100% de defunciones de tipo No fetal, la mayoría de fallecidos han sido del sexo Masculino con el 56%, el 25% de fallecidos estaban viudos, el 23% estaban casados, el 22% solteros. La mayoría de fallecidos eran mayores de 50 años de edad, su nivel educativo era principalmente básica primaria (55%) y en segundo lugar básica secundaria con 15%. El 30% se ocupaba de su hogar y se tiene un 42% sin esta información de ocupación. En cuanto a rasgos físicos y cultura, la mayoría no tenía alguna clasificación (98%), solo un 2% era afrocolombiano y menos del 1% indígena.
+Para el tipo de defunción, se ha tenido un 100% de defunciones de tipo No fetal, la mayoría de fallecidos han sido del sexo Masculino con el 55%, el 25% de fallecidos estaban viudos, el 23% estaban casados, el 22% solteros. La mayoría de fallecidos eran mayores de 50 años de edad, su nivel educativo era principalmente básica primaria (55%) y en segundo lugar básica secundaria con 15%. El 30% se ocupaba de su hogar y se tiene un 42% sin esta información de ocupación. En cuanto a rasgos físicos y cultura, la mayoría no tenía "ninguna" clasificación (98%), solo un 2% era afrocolombiano y menos del 1% indígena.
 
 La mayoría de fallecidos contaban con seguridad social: 48% Contributivo y 48% subsidiado, la EPS era principalmente Nueva EPS con el 31% y luego EMSSANAR E.S.S. con el 17%.
 
@@ -1272,7 +1272,6 @@ BDD_final.head(3)
 
 BDD_final['Cluster_4DB_DR'].value_counts()
 
-####################################################
 # 3d scatterplot using matplotlib
 import random
 clust=BDD_final['Cluster_4DB_DR'].unique().tolist()
@@ -1287,7 +1286,6 @@ ax.set_ylabel('PC2')
 ax.set_zlabel('PC3')
 ax.legend()
 plt.show()
-#############################AJUSTAR##################################
 
 """**Al observar gráficamente y ver el número de clústers formados, puede verse que el algoritmo no es útil, ya que generó demasiadas clases, lo cual no es efectivo para el agrupamiento de la base de datos y por lo tanto, se concluye que este algoritmo no es óptimo para nuestra base de datos**
 
@@ -1388,7 +1386,7 @@ for idx,i in enumerate(BDD_final[cat_cols].columns):
 
 En cuanto al área de defunción, el grupo 1 también tiene mayor cantidad de características, la distribución en los tres grupos está dominada por el área 3 que corresponde a cabecera municipal, para los grupos 1 y 2 le sigue el área 1 que corresponde a rural disperso y en el grupo 0, se tiene igual proporción entre el área 1 y 2 que corresponde a rural disperso y centro poblado respectivamente. El área 0 representa la categoría sin información que fue tratada previamente para reducir su cantidad.
 
-Para la variable sexo,  dominan el sexo Femenino (0) en cuanto a cantidad de características para los tres grupos.
+Para la variable sexo,  dominan el sexo Masculino (1) en cuanto a cantidad de características para los tres grupos.
 
 Para la variable de probable manera de muerte, se tiene mayor cantidad de características en el tipo enfermedad (1), para los tres grupos, en segundo lugar están las características clasificadas sin información (0) para los grupos 1 y 2, mientras que en el grupo 0, es el homicidio (4), el que está en segundo lugar.
 
@@ -1432,7 +1430,7 @@ En los meses de diciembre y octubre
 
 En la cabecera municipal, e igual proporción entre zona rural dispersa y centro poblado.
 
-En sexo femenino
+En sexo masculino
 
 Por enfermedad, luego homicidio y luego suicidio.
 
@@ -1453,7 +1451,7 @@ En los meses de julio y enero
 
 En la cabecera municipal, luego en zona rural dispersa
 
-En sexo femenino
+En sexo masculino
 
 Por enfermedad, luego sin información y luego por homicidio.
 
@@ -1473,7 +1471,7 @@ En los meses de abril y febrero
 
 En la cabecera municipal, luego en zona rural dispersa
 
-En sexo femenino
+En sexo masculino
 
 Por enfermedad, luego sin información y luego por homicidio.
 
@@ -1514,3 +1512,5 @@ kmo_model
 
 """**El KMO general de nuestros datos es 0.51. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
 
+
+"""
