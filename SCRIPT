@@ -683,6 +683,8 @@ BDD[['año', 'mes']]
 #Verificamos las dimensiones finales del conjunto de datos
 BDD.shape
 
+BDD.head(5)
+
 """#Exploración y análisis de datos"""
 
 #ahora haremos una exploración rápida de las variables
@@ -1218,7 +1220,7 @@ distances
 
 plt.style.use('seaborn')
 plt.figure(figsize = (8, 5))
-plt.plot(distances, color = 'red')
+plt.plot(distances, color = 'purple')
 plt.ylabel('Distancia al K vecino más cercano')
 plt.show()
 
@@ -1440,7 +1442,7 @@ Para el estado civil viudo, luego casado.
 
 Para el nivel educativo Básica Primaria, seguido de básica secundaria.
 
-Para las personas con edades entre los 70 años y los 95 años.
+Para las personas con edades entre los 70 años y los 95 años mayormente en el 2021.
 
 
 ##**Cluster 1**
@@ -1461,7 +1463,7 @@ Para el estado civil viudo, luego casado.
 
 Para el nivel educativo Básica Primaria, seguido de básica secundaria.
 
-Para las personas con edades entre los 60 años y los 95 años.
+Para las personas con edades entre los 60 años y los 95 años mayormente en el 2021.
 
 ##**Cluster 2**
 
@@ -1481,7 +1483,7 @@ Para el estado civil viudo, luego soltero.
 
 Para el nivel educativo Básica Primaria, seguido de básica secundaria.
 
-Para las personas con edades entre los 75 años y los 90 años.
+Para las personas con edades entre los 75 años y los 90 años mayormente en el 2021.
 
 #Análisis de factores
 
@@ -1493,8 +1495,8 @@ En esta prueba de Bartlett, el valor p es 0. La prueba fue estadísticamente sig
 
 from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity
 
-# Selección de variables de encuestas
-BDD_FA = BDD2_out[BDD2_out.columns[6:20]]
+# Selección de variables
+BDD_FA = BDD2_out[BDD2_out.columns[0:9]]
 
 # Aplicación de la prueba bartlett_sphericity
 chi_square_value, p_value = calculate_bartlett_sphericity(BDD_FA)
@@ -1510,7 +1512,7 @@ from factor_analyzer.factor_analyzer import calculate_kmo
 kmo_all,kmo_model=calculate_kmo(BDD_FA)
 kmo_model
 
-"""**El KMO general de nuestros datos es 0.51. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
+"""**El KMO general de nuestros datos es 0.54. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
 
 
 """
