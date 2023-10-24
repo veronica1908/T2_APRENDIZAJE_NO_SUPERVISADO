@@ -1384,22 +1384,19 @@ for idx,i in enumerate(BDD_final[cat_cols].columns):
                           #'TÉCNICA PROFESIONAL':7,'TECNOLÓGICA':8,'PROFESIONAL':9,'ESPECIALIZACION':10,'MAESTRÍA':11
 ########################################################################################################################################################################
 
-"""**FALTA AJUSTAR ESTOS ANÁLISIS DE AQUÍ PARA ABAJO, YA QUE CAMBIÓ BASTANTE LA DISTRIBUCIÓN**
+"""Para la variable mes, puede verse que cada grupo quedó con una asignación de las características de cuatro meses, teniendo una similar distribución de características entre si. En el grupo 0 hay menor cantidad de características correspondiente a los meses 1, 2, 3 y 4 que corresponden respectivamente a Noviembre, septiembre, diciembre y octubre, siendo diciembre el de mayor cantidad de características. En el grupo 1 está la mayor cantidad de características y agrupa los meses 9, 10, 11 y 12 que corresponden a mayo, junio, julio y enero, siendo enero el de mayor cantidad de características. Finalmente está el grupo 2 que reúne características de los meses 5, 6, 7 y 8 que representan  a Marzo, agosto, abril y febrero respectivamente, siendo febrero el de mayor cantidad de características.
 
-Para la variable mes, puede verse similar distribución de características con respecto al análisis general, ya que en el grupo 1 hay más características, seguido del grupo 0 y por último el grupo 2. Sin embargo, hay diferencias en la composición de estos, ya que en el grupo 0, dominan los meses 5, 6 y 7, en el grupo 1 domina el mes 1 y 2 y en el grupo 3 dominan los meses 6 y 1.
+En cuanto al área de defunción, el grupo 1 también tiene mayor cantidad de características, la distribución en los tres grupos está dominada por el área 3 que corresponde a cabecera municipal, para los grupos 1 y 2 le sigue el área 1 que corresponde a rural disperso y en el grupo 0, se tiene igual proporción entre el área 1 y 2 que corresponde a rural disperso y centro poblado respectivamente. El área 0 representa la categoría sin información que fue tratada previamente para reducir su cantidad.
 
+Para la variable sexo,  dominan el sexo Femenino (0) en cuanto a cantidad de características para los tres grupos.
 
-En cuanto al área de defunción, los grupos 0 y 2 tienen similar proporción en la distribución de categorías, siendo la cabecera municipal (1) la de mayor cantidad características y por una gran diferencia por debajo, le sigue el área rural dispersa (2) y luego el centro poblado (1). Para el grupo 1 igualmente domina la cantidad de características para cabecera municipal, pero le sigue en segundo lugar el centro poblado y por último el rural disperso. Las características sin información (0) representan baja proporción ya que se trató en los datos atípicos y reducción de la dimensionalidad.
+Para la variable de probable manera de muerte, se tiene mayor cantidad de características en el tipo enfermedad (1), para los tres grupos, en segundo lugar están las características clasificadas sin información (0) para los grupos 1 y 2, mientras que en el grupo 0, es el homicidio (4), el que está en segundo lugar.
 
-Para la variable sexo, tanto en el grupo 0 como en el grupo 2,  dominan el sexo Femenino (0) en cuanto a cantidad de características, en el grupo 1 hay más características para el sexo masculino (1).
+Se tiene diferentes distribuciones en los grupos para la variable Seguridad social, en el grupo 0 y 2 domina el tipo subsidiado (4), seguido por poca diferencia del tipo contributivo (5). En el grupo 1 domina el tipo contributivo (5) seguido por poca diferencia del tipo subsidiado (4).
 
-Para la variable de probable manera de muerte, se tiene mayor cantidad de características en el tipo enfermedad (1), para los tres grupos, en segundo lugar están las características clasificadas sin información (0) para los grupos 0 y 1, mientras que en el grupo 2, es el homicidio (4), el que está en segundo lugar.
+Para el estado civil se presenta dominancia del estado civil 5 en todos los grupos, correspondiente a VIUDO (A), en los grupos 0 y 1, se tiene similar distribución de las categorías proporcionalmente hablando, ya que el grupo 1 cuenta con mayor cantidad, en segundo lugar tienen el estado civil 4 que corresponde a CASADO (A). Para el grupo 2, el segundo lugar está ocupado por ele stado civil 3 que corresponde a SOLTERO (A).
 
-Se tiene diferentes distribuciones en los grupos para la variable Seguridad social, en el grupo 1 domina el tipo subsidiado (3), seguido por poca diferencia del tipo contributivo (4). En el grupo 2 domina el tipo contributivo (4) seguido por poca diferencia del tipo subsidiado (3). Y para el grupo 3, se tiene similar propoción que para el grupo 0 pero representado con menor cantidad de características.
-
-Para el estado civil, en el grupo 0, se tiene mayor cantidad de características en el tipo CASADO (3), en el grupo 1 domina el tipo VIUDO (5),  mientras que en el grupo 2 domina el tipo UNIÓN LIBRE (2).
-
-Finalmente, en cuanto a nivel educativo, tanto para el grupo 0 como para el grupo 1, dominan el nivel BÁSICA PRIMARIA (3), mientras que en el grupo 2 domina el nivel MEDIA ACADÉMICA (5).
+Finalmente, en cuanto a nivel educativo se tiene una distribución similar de categorías en los tres grupos, proporcionalmente hablando. El grupo 1 mantiene la mayor cantidad de características seguido del grupo 2 y el grupo 0 con menor cantidad, la categoría con más características en todos los grupos es básica primaria, seguido de básica secundaria.
 
 """
 
@@ -1411,7 +1408,7 @@ for i in list(range(0,3)):
     plt.title(i)
     sns.histplot(data=temp_edad[temp_edad.Cluster_2KM_DR==i],x='Edad',hue='Cluster_2KM_DR',palette=pal[i],binwidth=.8,ax=axs[i],multiple='dodge')
 
-"""Para la variable numérica EDAD,se tiene que para el grupo 0, están las edades entre los 50 y los 75 años, para el grupo 1 están las edades entre los 76 y 110 años y en el grupo 2 están las edades entre los 15 y los 50 años. Se observa que los cluster o grupos no comparten rangos de edades, lo que muestra una buena clasificación de los datos en lso clústers."""
+"""Para la variable numérica EDAD,se tiene una distribución muy similar entre los tres grupos, los cuales incluyen características de todas las edades, pareciéndose en gran medida a la distribución normal. Los rangos de edad con mayor ocurrencia de muertes por grupo son: grupo 0: edades entre los 70 y los 95 años. Grupo 1: edades entre los 60 y los 95 años. Grupo 2: edades entre los 75 y los 95 años."""
 
 # Análisis del año
 temp_año = BDD_final[['Cluster_2KM_DR','año']]
@@ -1421,7 +1418,7 @@ for i in list(range(0,3)):
     plt.title(i)
     sns.histplot(data=temp_año[temp_año.Cluster_2KM_DR==i],x='año',hue='Cluster_2KM_DR',palette=pal[i],binwidth=.8,ax=axs[i],multiple='dodge')
 
-"""Para la otra variable numérica AÑO, al haber solo dos años para los datos, se observa que se comparten datos, sin embargo hay una distribución similar en cuanto a proporciones de los años 2021 y 2022."""
+"""Para la otra variable numérica AÑO, al haber solo dos años para los datos, se observa que se comparten datos en similar proporción en todos los grupos, presentándose una diferencia mayor en el grupo 1 y presentándose mayor ocurrencia en el año 2021."""
 
 BDD_final[BDD_final['Cluster_2KM_DR']==2]['Probable manera de muerte'].value_counts(normalize=True)
 
@@ -1430,38 +1427,63 @@ BDD_final[BDD_final['Cluster_2KM_DR']==2]['Probable manera de muerte'].value_cou
 ##**Cluster 0**
 
 Mayor ocurrencia de muertes:
-En los meses de mayo, junio y julio
-En la cabecera municipal, luego en zona rural dispersa
+
+En los meses de diciembre y octubre
+
+En la cabecera municipal, e igual proporción entre zona rural dispersa y centro poblado.
+
 En sexo femenino
-Por enfermedad, luego sin información y luego por accidente
+
+Por enfermedad, luego homicidio y luego suicidio.
+
 Para personas con seguridad social tipo subsidiado y contributivo en segundo lugar.
-Para el estado civil Casado (a)
-Para el nivel educativo Básica Primaria
-Para las personas con edades entre los 50 años y los 75 años.
+
+Para el estado civil viudo, luego casado.
+
+Para el nivel educativo Básica Primaria, seguido de básica secundaria.
+
+Para las personas con edades entre los 70 años y los 95 años.
+
 
 ##**Cluster 1**
 
 Mayor ocurrencia de muertes:
-En los meses de enero y febrero
-En la cabecera municipal, luego en centro poblado
-En sexo masculino
-Por enfermedad, luego sin información y luego por accidente
+
+En los meses de julio y enero
+
+En la cabecera municipal, luego en zona rural dispersa
+
+En sexo femenino
+
+Por enfermedad, luego sin información y luego por homicidio.
+
 Para personas con seguridad social tipo contributivo y subsidiado en segundo lugar.
-Para el estado civil Viudo (a)
-Para el nivel educativo Básica Primaria
-Para las personas con edades entre los 76 años y los 110 años.
+
+Para el estado civil viudo, luego casado.
+
+Para el nivel educativo Básica Primaria, seguido de básica secundaria.
+
+Para las personas con edades entre los 60 años y los 95 años.
 
 ##**Cluster 2**
 
 Mayor ocurrencia de muertes:
-En los meses de enero y junio
+
+En los meses de abril y febrero
+
 En la cabecera municipal, luego en zona rural dispersa
+
 En sexo femenino
-Por enfermedad, luego por homicidio y luego sin información
+
+Por enfermedad, luego sin información y luego por homicidio.
+
 Para personas con seguridad social tipo subsidiado y contributivo en segundo lugar.
-Para el estado civil Unión libre.
-Para el nivel educativo Media académica.
-Para las personas con edades entre los 15 años y los 50 años.
+
+Para el estado civil viudo, luego soltero.
+
+Para el nivel educativo Básica Primaria, seguido de básica secundaria.
+
+Para las personas con edades entre los 75 años y los 90 años.
 
 #Análisis de factores
 
@@ -1491,3 +1513,4 @@ kmo_all,kmo_model=calculate_kmo(BDD_FA)
 kmo_model
 
 """**El KMO general de nuestros datos es 0.51. Este valor indica que ES INADECUADO y no se puede continuar con el análisis factorial planificado.**
+
