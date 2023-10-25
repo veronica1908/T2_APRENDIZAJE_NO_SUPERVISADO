@@ -1373,16 +1373,16 @@ for idx,i in enumerate(BDD_final[cat_cols].columns):
     plt.title(i)
     sns.histplot(data=BDD_final,x='Cluster_2KM_DR', hue=i, palette=pal[idx], binwidth=.5, ax=axs[idx] ,multiple='dodge').set_xlim
 
-#######################################################################################################################################################################
-#Variable Mes: 'January': 1, 'February': 2, 'March':3, 'April':4, 'May':5, 'June':6, 'July':7, 'August':8, 'September': 9, 'October':10, 'November':11, 'December':12
-#Variable Área de defunción: 'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':1, 'CENTRO POBLADO':2, 'RURAL DISPERSO':3
+###########################################################################################################################################################
+# mes:'January': 12, 'July':11, 'June':10,'May':9, 'February':8 ,'April':7,'August':6, 'March':5, 'October':4,'December':3, 'September': 2,  'November':1
+#Variable Área de defunción: 'SIN INFORMACIÓN':0,'CABECERA MUNICIPAL':3, 'CENTRO POBLADO':2, 'RURAL DISPERSO':1
 #Variable sexo: 'FEMENINO':0, 'MASCULINO':1
-#Variable Probable manera de muerte: 'SIN INFORMACIÓN': 0, 'NATURAL (ENFERMEDAD)':1, 'ACCIDENTE':2, 'SUICIDIO (AUTOLESIÓN)':3, 'HOMICIDIO':4
-#Variable Seguridad social: 'SIN INFORMACIÓN': 0,'NO ASEGURADO':1, 'EXCEPCIÓN':2, 'SUBSIDIADO':3, 'CONTRIBUTIVO':4, 'ESPECIAL':5
-#Variable Estado civil: 'SIN INFORMACIÓN': 0,'SOLTERO(A)':1,'UNIÓN LIBRE':2,'CASADO(A)':3,'SEPARADO (A)':4,'VIUDO(A)':5
-#Variable Nivel educativo: 'SIN INFORMACIÓN': 0,'NINGUNO':1,'PREESCOLAR':2,'BÁSICA PRIMARIA':3,'BÁSICA SECUNDARIA':4,'MEDIA ACADÉMICA':5,'MEDIA TÉCNICA':6,
-                          #'TÉCNICA PROFESIONAL':7,'TECNOLÓGICA':8,'PROFESIONAL':9,'ESPECIALIZACION':10,'MAESTRÍA':11
-########################################################################################################################################################################
+#Variable Probable manera de muerte: 'SIN INFORMACIÓN': 0,'NATURAL (ENFERMEDAD)':1,'ACCIDENTE':2,'SUICIDIO (AUTOLESIÓN)':3,'HOMICIDIO':4
+#Variable Seguridad social: 'ESPECIAL':0,'NO ASEGURADO':1,'SIN INFORMACIÓN': 2,'EXCEPCIÓN':3,'SUBSIDIADO':4,'CONTRIBUTIVO':5})
+#Variable Estado civil: 'SEPARADO (A)':0,'SIN INFORMACIÓN': 1,'UNIÓN LIBRE':2,'SOLTERO(A)':3,'CASADO(A)':4,'VIUDO(A)':5
+#Variable Nivel educativo: 'SIN INFORMACIÓN': 0,'NINGUNO':1,'PREESCOLAR':2,'BÁSICA PRIMARIA':3,'BÁSICA SECUNDARIA':4,'MEDIA ACADÉMICA':5,
+#                         'MEDIA TÉCNICA':6,'TÉCNICA PROFESIONAL':7,'TECNOLÓGICA':8,'PROFESIONAL':9,'ESPECIALIZACION':10,'MAESTRÍA':11
+###########################################################################################################################################################
 
 """Para la variable mes, puede verse que cada grupo quedó con una asignación de las características de cuatro meses, teniendo una similar distribución de características entre si. En el grupo 0 hay menor cantidad de características correspondiente a los meses 1, 2, 3 y 4 que corresponden respectivamente a Noviembre, septiembre, diciembre y octubre, siendo diciembre el de mayor cantidad de características. En el grupo 1 está la mayor cantidad de características y agrupa los meses 9, 10, 11 y 12 que corresponden a mayo, junio, julio y enero, siendo enero el de mayor cantidad de características. Finalmente está el grupo 2 que reúne características de los meses 5, 6, 7 y 8 que representan  a Marzo, agosto, abril y febrero respectivamente, siendo febrero el de mayor cantidad de características.
 
